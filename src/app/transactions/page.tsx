@@ -31,7 +31,7 @@ export default function TransactionsPage() {
           .order('created_at', { ascending: false });
           
         if (data) {
-          const mapped = data.map(item => {
+          const mapped = data.map((item: any) => {
             const date = new Date(item.created_at);
             const timeString = date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
             return {
