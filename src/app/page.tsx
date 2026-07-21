@@ -45,8 +45,14 @@ export default function POSPage() {
   const [isPaymentSuccess, setIsPaymentSuccess] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [invoiceNumber, setInvoiceNumber] = useState("");
+  const [taxRate, setTaxRate] = useState(0.11);
 
   useEffect(() => {
+    const savedTax = localStorage.getItem("kasir_tax_rate");
+    if (savedTax) {
+      setTaxRate(Number(savedTax) / 100);
+    }
+
     async function loadData() {
       try {
         const supabase = createClient();
@@ -107,7 +113,7 @@ export default function POSPage() {
   };
 
   const subtotal = cart.reduce((sum, item) => sum + (item.product.price * item.qty), 0);
-  const tax = subtotal * 0.11;
+  const tax = subtotal * taxRate;
   const total = subtotal + tax;
 
   const filteredProducts = products.filter(p => 
@@ -315,7 +321,7 @@ export default function POSPage() {
               <span className="font-medium text-slate-700">Rp {subtotal.toLocaleString('id-ID')}</span>
             </div>
             <div className="flex justify-between text-slate-500 text-sm">
-              <span>Pajak (11%)</span>
+              <span>Pajak ({taxRate * 100}%)</span>
               <span className="font-medium text-slate-700">Rp {tax.toLocaleString('id-ID')}</span>
             </div>
             <div className="h-px w-full bg-slate-200 my-1"></div>
