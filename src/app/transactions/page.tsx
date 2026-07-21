@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/sidebar";
-import { Search, Filter, Receipt, FileText, Download, Calendar, Loader2 } from "lucide-react";
+import { Search, Filter, Receipt, FileText, Download, Calendar, Loader2, X } from "lucide-react";
 import { ChatWidget } from "@/components/chat-widget";
 import { createClient } from "@/utils/supabase/client";
 
@@ -11,6 +11,9 @@ export default function TransactionsPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [stats, setStats] = useState({ totalSales: 0, count: 0, avg: 0 });
+  const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
+  const [transactionDetails, setTransactionDetails] = useState<any[]>([]);
+  const [loadingDetails, setLoadingDetails] = useState(false);
 
   useEffect(() => {
     async function loadTransactions() {
@@ -35,6 +38,7 @@ export default function TransactionsPage() {
             const date = new Date(item.created_at);
             const timeString = date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
             return {
+              db_id: item.id,
               id: item.invoice_no,
               time: timeString,
               cust: item.customers?.name || "Umum",
@@ -68,6 +72,33 @@ export default function TransactionsPage() {
     t.id.toLowerCase().includes(searchQuery.toLowerCase()) || 
     t.cust.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleViewDetail = async (t: any) => {
+    setSelectedTransaction(t);
+    setLoadingDetails(true);
+    setTransactionDetails([]);
+    
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('sale_items')
+        .select(`
+          qty, 
+          price, 
+          total, 
+          products ( name )
+        `)
+        .eq('sale_id', t.db_id);
+        
+      if (data) {
+        setTransactionDetails(data);
+      }
+    } catch (err) {
+      console.error("Error loading details:", err);
+    } finally {
+      setLoadingDetails(false);
+    }
+  };
 
   return (
     <div className="flex h-screen w-full bg-slate-50 text-slate-900 font-sans overflow-hidden">
@@ -169,7 +200,10 @@ export default function TransactionsPage() {
                       </td>
                       <td className="px-6 py-4 font-semibold text-slate-700">Rp {t.total.toLocaleString('id-ID')}</td>
                       <td className="px-6 py-4 text-right">
-                        <button className="text-indigo-600 hover:text-indigo-800 font-medium text-xs flex items-center justify-end gap-1 ml-auto">
+                        <button 
+                          onClick={() => handleViewDetail(t)}
+                          className="text-indigo-600 hover:text-indigo-800 font-medium text-xs flex items-center justify-end gap-1 ml-auto"
+                        >
                           <FileText className="w-3 h-3" /> Detail
                         </button>
                       </td>
@@ -186,6 +220,58 @@ export default function TransactionsPage() {
           </div>
         </div>
       </main>
+      {/* Modal Detail Transaksi */}
+      {selectedTransaction && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl flex flex-col animate-in zoom-in duration-300 relative max-h-[90vh]">
+            <button onClick={() => setSelectedTransaction(null)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-700 bg-slate-100 p-2 rounded-full transition-colors">
+               <X className="w-5 h-5" />
+            </button>
+            <h2 className="text-xl font-bold text-slate-800 mb-1 flex items-center gap-2">
+              <Receipt className="w-5 h-5 text-indigo-600" /> Detail Transaksi
+            </h2>
+            <p className="text-slate-500 text-sm mb-6 font-medium">Struk: <span className="text-slate-700">{selectedTransaction.id}</span> • {selectedTransaction.time}</p>
+            
+            <div className="flex-1 overflow-y-auto mb-6 pr-2">
+               {loadingDetails ? (
+                  <div className="flex flex-col items-center justify-center py-12 gap-3 text-slate-400">
+                    <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+                    <span className="text-sm">Memuat rincian...</span>
+                  </div>
+               ) : (
+                  <div className="flex flex-col gap-4">
+                    {transactionDetails.map((item, idx) => (
+                      <div key={idx} className="flex justify-between items-start text-sm border-b border-slate-100 pb-4 last:border-0 last:pb-0">
+                        <div className="flex gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+                            {item.qty}x
+                          </div>
+                          <div>
+                            <p className="font-bold text-slate-800 mb-1">{item.products?.name || "Produk Dihapus"}</p>
+                            <p className="text-slate-500 text-xs">@ Rp {item.price.toLocaleString('id-ID')}</p>
+                          </div>
+                        </div>
+                        <p className="font-bold text-slate-700 mt-1">Rp {item.total.toLocaleString('id-ID')}</p>
+                      </div>
+                    ))}
+                  </div>
+               )}
+            </div>
+            
+            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+               <div className="flex justify-between items-center mb-2 text-sm text-slate-500">
+                 <span>Pelanggan</span>
+                 <span className="font-semibold text-slate-700">{selectedTransaction.cust}</span>
+               </div>
+               <div className="h-px w-full bg-slate-200 my-3"></div>
+               <div className="flex justify-between items-end">
+                 <span className="font-bold text-slate-700">Total Akhir</span>
+                 <span className="text-2xl font-black text-indigo-600">Rp {selectedTransaction.total.toLocaleString('id-ID')}</span>
+               </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
