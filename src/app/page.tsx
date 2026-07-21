@@ -13,26 +13,6 @@ const getIcon = (category: string) => {
   return IceCream;
 };
 
-const PRODUCT_IMAGES: Record<string, string> = {
-  'Salmon Nigiri': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Salmon_Nigiri.jpg/320px-Salmon_Nigiri.jpg',
-  'Tuna Sashimi': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Sashimi_Maguro.jpg/320px-Sashimi_Maguro.jpg',
-  'Spicy Tuna Roll': 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Spicy_tuna_roll.jpg/320px-Spicy_tuna_roll.jpg',
-  'California Roll': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/California_roll_1.jpg/320px-California_roll_1.jpg',
-  'Miso Soup': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Miso_soup_by_fotoosvanrobin_in_Aki_Restaurant%2C_Amsterdam.jpg/320px-Miso_soup_by_fotoosvanrobin_in_Aki_Restaurant%2C_Amsterdam.jpg',
-  'Edamame': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Edamame_by_G_Saito.jpg/320px-Edamame_by_G_Saito.jpg',
-  'Ocha Dingin': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Iced_green_tea.jpg/320px-Iced_green_tea.jpg',
-  'Matcha Ice Cream': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Matcha_ice_cream.jpg/320px-Matcha_ice_cream.jpg',
-};
-
-const CATEGORY_IMAGES: Record<string, string> = {
-  'Sushi': 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Sushi_platter.jpg/320px-Sushi_platter.jpg',
-  'Sashimi': 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Sashimi_3.jpg/320px-Sashimi_3.jpg',
-  'Appetizer': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Appetizer_plate.jpg/320px-Appetizer_plate.jpg',
-  'Minuman': 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Iced_tea.jpg/320px-Iced_tea.jpg',
-  'Dessert': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Japanese_dessert.jpg/320px-Japanese_dessert.jpg',
-  'Semua Kategori': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Bento_in_a_Japanese_restaurant.jpg/320px-Bento_in_a_Japanese_restaurant.jpg',
-};
-
 export default function POSPage() {
   const [products, setProducts] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
@@ -64,8 +44,7 @@ export default function POSPage() {
             price: item.price,
             stock: item.stock,
             color: item.category === 'Minuman' ? "bg-amber-700/20 text-amber-700" : (item.category === 'Sushi' || item.category === 'Sashimi') ? "bg-orange-600/20 text-orange-600" : item.category === 'Appetizer' ? "bg-emerald-600/20 text-emerald-600" : "bg-pink-600/20 text-pink-600",
-            icon: getIcon(item.category),
-            image_url: PRODUCT_IMAGES[item.name] || CATEGORY_IMAGES[item.category] || 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Bento_in_a_Japanese_restaurant.jpg/320px-Bento_in_a_Japanese_restaurant.jpg'
+            icon: getIcon(item.category)
           }));
           setProducts(mapped);
         }
@@ -208,15 +187,12 @@ export default function POSPage() {
             <button 
               key={i}
               onClick={() => setActiveCategory(cat as string)}
-              className={`flex items-center gap-2 pl-2 pr-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+              className={`px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
                 activeCategory === cat 
                   ? "bg-indigo-600 text-white shadow-md shadow-indigo-200" 
                   : "bg-white text-slate-600 hover:bg-indigo-50 border border-slate-200"
               }`}
             >
-              <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-100 flex-shrink-0">
-                <img src={CATEGORY_IMAGES[cat as string] || 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Bento_in_a_Japanese_restaurant.jpg/320px-Bento_in_a_Japanese_restaurant.jpg'} alt={cat as string} className="w-full h-full object-cover" />
-              </div>
               {cat}
             </button>
           ))}
@@ -237,8 +213,8 @@ export default function POSPage() {
                   onClick={() => addToCart(product)}
                   className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 hover:shadow-md hover:border-indigo-300 cursor-pointer transition-all group flex flex-col h-full hover:-translate-y-1"
                 >
-                  <div className={`w-full h-32 rounded-xl mb-4 flex items-center justify-center overflow-hidden relative transition-transform group-hover:scale-[1.02] bg-slate-100`}>
-                    <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                  <div className={`w-full h-32 rounded-xl mb-4 flex items-center justify-center ${product.color} transition-transform group-hover:scale-[1.02]`}>
+                    <product.icon className="w-12 h-12 opacity-80" />
                   </div>
                   <div className="mt-auto">
                     <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">{product.category}</p>
