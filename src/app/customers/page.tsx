@@ -5,7 +5,7 @@ import {
   Search, Plus, Filter, Users, UserPlus, UserCheck, Star, 
   MoreHorizontal, Phone, Mail, RotateCcw, ChevronDown, 
   LayoutDashboard, ShoppingCart, FileText, Package, Bot, 
-  Settings, Bell, Crown, Mail as MailIcon, X, Home
+  Settings, Bell, Crown, Mail as MailIcon, X, Home, Trash2
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -98,6 +98,21 @@ export default function CustomersPage() {
       console.error(err);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleDeleteCustomer = async (id: number) => {
+    if (!confirm("Apakah Anda yakin ingin menghapus pelanggan ini?")) return;
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.from('customers').delete().eq('id', id);
+      if (!error) {
+        setCustomers(prev => prev.filter(c => c.id !== id));
+      } else {
+        console.error(error);
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -313,6 +328,7 @@ export default function CustomersPage() {
                           <th className="px-5 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Transaksi</th>
                           <th className="px-5 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Poin</th>
                           <th className="px-5 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                          <th className="px-5 py-4 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider">Aksi</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
@@ -337,6 +353,15 @@ export default function CustomersPage() {
                               <span className={`text-[12px] font-bold ${c.status === 'Aktif' ? 'text-emerald-600' : 'text-red-500'}`}>
                                 {c.status}
                               </span>
+                            </td>
+                            <td className="px-5 py-4 text-center">
+                              <button 
+                                onClick={() => handleDeleteCustomer(c.id)}
+                                className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                title="Hapus Pelanggan"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
                             </td>
                           </tr>
                         ))}
