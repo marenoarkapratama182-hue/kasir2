@@ -1,11 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { LayoutGrid, Package, Users, Settings, LogOut, Receipt, PieChart } from "lucide-react";
+import { createClient } from "@/utils/supabase/client";
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  
+  const handleLogout = async () => {
+    try {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      router.push("/login");
+      router.refresh();
+    } catch (err) {
+      console.error("Error logging out", err);
+    }
+  };
   
   return (
     <aside className="w-24 bg-white border-r border-slate-200 flex flex-col items-center py-6 shadow-sm z-10 flex-shrink-0 h-screen">
@@ -23,7 +36,10 @@ export function Sidebar() {
       </nav>
       
       <div className="mt-auto">
-        <button className="w-14 h-14 rounded-xl flex flex-col items-center justify-center gap-1 transition-all text-slate-400 hover:bg-red-50 hover:text-red-500">
+        <button 
+          onClick={handleLogout}
+          className="w-14 h-14 rounded-xl flex flex-col items-center justify-center gap-1 transition-all text-slate-400 hover:bg-red-50 hover:text-red-500"
+        >
           <LogOut className="w-6 h-6" />
           <span className="text-[10px] font-medium mt-1">Keluar</span>
         </button>
