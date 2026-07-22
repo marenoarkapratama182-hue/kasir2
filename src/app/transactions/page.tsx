@@ -101,12 +101,13 @@ function StatusBadge({ status }: { status: string }) {
   return <span className={`text-xs font-semibold ${map[status] || "text-slate-500"}`}>{status}</span>;
 }
 
-export default function TransactionsPage() {
-  const [transactions, setTransactions] = useState<any[]>(mockTransactions);
-  const [loading, setLoading] = useState(false);
-  const [selectedRow, setSelectedRow] = useState<string>("TRX-000125");
-  const [showDetail, setShowDetail] = useState(true);
-  const [checked, setChecked] = useState<string[]>(["TRX-000125"]);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedRow, setSelectedRow] = useState<string>("");
+  const [showDetail, setShowDetail] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [selectedTxData, setSelectedTxData] = useState<any>(null);
+  const [checked, setChecked] = useState<string[]>([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const router = useRouter();
@@ -122,14 +123,16 @@ export default function TransactionsPage() {
         const supabase = createClient();
         const { data } = await supabase
           .from("sales")
-          .select("id, invoice_no, total_amount, payment_method, created_at, customers(name)")
-          .order("created_at", { ascending: false })
-          .limit(10);
+          .select("id, invoice_no, total_amount, payment_method, created_at, customers(name, phone)")
+          .order("created_at", { ascending: false });
         if (data && data.length > 0) {
-          const mapped = data.map((item: any, i: number) => ({
+          const mapped = data.map((item: any) => ({
             id: item.invoice_no,
+            dbId: item.id,
             waktu: new Date(item.created_at).toLocaleString("id-ID", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }),
-            pelanggan: item.customers?.name || "—",
+            rawWaktu: item.created_at,
+            pelanggan: item.customers?.name || "Pelanggan Umum",
+            hp: item.customers?.phone || "—",
             kasir: "John Doe",
             outlet: "Toko Utama",
             metode: item.payment_method || "Tunai",
@@ -138,10 +141,43 @@ export default function TransactionsPage() {
           }));
           setTransactions(mapped);
         }
-      } catch {}
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     }
     load();
   }, []);
+
+  const handleRowClick = async (t: any) => {
+    setSelectedRow(t.id);
+    setShowDetail(true);
+    setDetailLoading(true);
+    
+    try {
+      const supabase = createClient();
+      const { data: items } = await supabase
+        .from("sale_items")
+        .select("qty, price, total, products(name, category)")
+        .eq("sale_id", t.dbId);
+        
+      setSelectedTxData({
+        ...t,
+        items: items ? items.map((i: any) => ({
+          name: i.products?.name || "Produk",
+          category: i.products?.category || "default",
+          qty: i.qty,
+          price: i.price,
+          total: i.total
+        })) : []
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -305,7 +341,7 @@ export default function TransactionsPage() {
                     <tbody className="divide-y divide-slate-50">
                       {paginatedTransactions.map((t, i) => (
                         <tr key={i}
-                          onClick={() => { setSelectedRow(t.id); setShowDetail(true); }}
+                          onClick={() => handleRowClick(t)}
                           className={`cursor-pointer transition-colors ${selectedRow === t.id ? "bg-violet-50" : "hover:bg-slate-50/80"}`}>
                           <td className="px-4 py-3">
                             <input type="checkbox" checked={checked.includes(t.id)} onChange={() => toggleCheck(t.id)} onClick={e => e.stopPropagation()} className="rounded accent-violet-600" />
@@ -369,7 +405,7 @@ export default function TransactionsPage() {
 
           {/* ─── DETAIL PANEL ─── */}
           {showDetail && (
-            <aside className="w-72 bg-white border-l border-slate-200 flex flex-col h-full flex-shrink-0 overflow-y-auto">
+            <aside className="w-72 bg-white border-l border-slate-200 flex flex-col h-full flex-shrink-0 overflow-hidden">
               <div className="px-4 pt-4 pb-3 flex items-center justify-between border-b border-slate-100 flex-shrink-0">
                 <h2 className="text-sm font-bold text-slate-800">Detail Transaksi</h2>
                 <button onClick={() => setShowDetail(false)} className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors">
@@ -377,120 +413,144 @@ export default function TransactionsPage() {
                 </button>
               </div>
 
-              <div className="p-4 space-y-4">
-                {/* ID + Status */}
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-[10px] text-slate-400 font-medium">ID Transaksi</p>
-                    <p className="text-sm font-bold text-slate-800 mt-0.5">{mockDetail.id}</p>
-                  </div>
-                  <span className="bg-emerald-100 text-emerald-600 text-[10px] font-bold px-2.5 py-1 rounded-full">Berhasil</span>
+              {detailLoading || !selectedTxData ? (
+                <div className="flex-1 flex flex-col items-center justify-center">
+                  <span className="w-6 h-6 border-2 border-violet-600 border-t-transparent rounded-full animate-spin mb-3"></span>
+                  <span className="text-xs text-slate-400 font-medium">Memuat detail...</span>
                 </div>
-                <div>
-                  <p className="text-[10px] text-slate-400 font-medium">Waktu</p>
-                  <p className="text-xs text-slate-700 font-medium mt-0.5">{mockDetail.waktu}</p>
-                </div>
-
-                {/* Customer */}
-                <div className="bg-slate-50 rounded-xl p-3">
-                  <p className="text-[10px] text-slate-400 font-medium mb-2">Pelanggan</p>
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0">
-                      <span className="text-violet-600 font-bold text-[10px]">AW</span>
-                    </div>
+              ) : (
+                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                  {/* ID + Status */}
+                  <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-semibold text-slate-700">{mockDetail.pelanggan}</p>
-                      <p className="text-[10px] text-slate-400">{mockDetail.hp}</p>
+                      <p className="text-[10px] text-slate-400 font-medium">ID Transaksi</p>
+                      <p className="text-sm font-bold text-slate-800 mt-0.5">{selectedTxData.id}</p>
+                    </div>
+                    <span className="bg-emerald-100 text-emerald-600 text-[10px] font-bold px-2.5 py-1 rounded-full">{selectedTxData.status}</span>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-400 font-medium">Waktu</p>
+                    <p className="text-xs text-slate-700 font-medium mt-0.5">{selectedTxData.waktu}</p>
+                  </div>
+
+                  {/* Customer */}
+                  <div className="bg-slate-50 rounded-xl p-3">
+                    <p className="text-[10px] text-slate-400 font-medium mb-2">Pelanggan</p>
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0">
+                        <span className="text-violet-600 font-bold text-[10px] uppercase">
+                          {selectedTxData.pelanggan.substring(0, 2)}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-slate-700">{selectedTxData.pelanggan}</p>
+                        <p className="text-[10px] text-slate-400">{selectedTxData.hp}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Info */}
-                <div>
-                  <p className="text-[10px] text-slate-400 font-bold mb-2 uppercase tracking-wider">Informasi Transaksi</p>
-                  <div className="space-y-2">
-                    {[["Kasir", mockDetail.kasir],["Outlet", mockDetail.outlet],["No. Invoice", mockDetail.invoice]].map(([k,v]) => (
-                      <div key={k} className="flex justify-between">
-                        <span className="text-[11px] text-slate-500">{k}</span>
-                        <span className="text-[11px] font-semibold text-slate-700">{v}</span>
+                  {/* Info */}
+                  <div>
+                    <p className="text-[10px] text-slate-400 font-bold mb-2 uppercase tracking-wider">Informasi Transaksi</p>
+                    <div className="space-y-2">
+                      {[
+                        ["Kasir", selectedTxData.kasir],
+                        ["Outlet", selectedTxData.outlet],
+                        ["No. Invoice", selectedTxData.id]
+                      ].map(([k,v]) => (
+                        <div key={k} className="flex justify-between">
+                          <span className="text-[11px] text-slate-500">{k}</span>
+                          <span className="text-[11px] font-semibold text-slate-700">{v}</span>
+                        </div>
+                      ))}
+                      <div className="flex justify-between items-center">
+                        <span className="text-[11px] text-slate-500">Metode Bayar</span>
+                        <MetodeBadge metode={selectedTxData.metode} />
                       </div>
-                    ))}
-                    <div className="flex justify-between items-center">
-                      <span className="text-[11px] text-slate-500">Metode Bayar</span>
-                      <MetodeBadge metode={mockDetail.metode} />
                     </div>
                   </div>
-                </div>
 
-                {/* Timeline */}
-                <div>
-                  <p className="text-[10px] text-slate-400 font-bold mb-2 uppercase tracking-wider">Timeline Transaksi</p>
-                  <div className="relative pl-4">
-                    <div className="absolute left-1.5 top-2 bottom-2 w-px bg-violet-200"></div>
-                    {mockDetail.timeline.map((t, i) => (
-                      <div key={i} className="flex gap-3 mb-3 relative">
-                        <div className="w-3 h-3 rounded-full bg-violet-600 border-2 border-white shadow absolute -left-4 top-0.5 flex-shrink-0"></div>
-                        <div>
-                          <p className="text-[11px] font-semibold text-slate-700">{t.label}</p>
-                          <p className="text-[9px] text-slate-400">{t.time}</p>
+                  {/* Timeline */}
+                  <div>
+                    <p className="text-[10px] text-slate-400 font-bold mb-2 uppercase tracking-wider">Timeline Transaksi</p>
+                    <div className="relative pl-4">
+                      <div className="absolute left-1.5 top-2 bottom-2 w-px bg-violet-200"></div>
+                      {[
+                        { label: "Transaksi dibuat", time: selectedTxData.waktu },
+                        { label: "Pembayaran diterima", time: selectedTxData.waktu },
+                        { label: "Transaksi berhasil", time: selectedTxData.waktu },
+                      ].map((t, i) => (
+                        <div key={i} className="flex gap-3 mb-3 relative">
+                          <div className="w-3 h-3 rounded-full bg-violet-600 border-2 border-white shadow absolute -left-4 top-0.5 flex-shrink-0"></div>
+                          <div>
+                            <p className="text-[11px] font-semibold text-slate-700">{t.label}</p>
+                            <p className="text-[9px] text-slate-400">{t.time}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Items */}
+                  <div>
+                    <p className="text-[10px] text-slate-400 font-bold mb-2 uppercase tracking-wider">Item ({selectedTxData.items?.length || 0})</p>
+                    <div className="space-y-2">
+                      {selectedTxData.items?.map((item: any, i: number) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center text-sm flex-shrink-0">
+                            {["☕","🍜","💧","📦","🍣"][i % 5]}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[11px] font-semibold text-slate-700 truncate">{item.name}</p>
+                            <p className="text-[10px] text-slate-400">{item.qty}x Rp {item.price.toLocaleString("id-ID")}</p>
+                          </div>
+                          <span className="text-[11px] font-bold text-slate-700">Rp {item.total.toLocaleString("id-ID")}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Summary */}
+                  {(() => {
+                    const subtotal = selectedTxData.items?.reduce((s: number, i: any) => s + i.total, 0) || 0;
+                    const diskon = Math.floor(subtotal * 0.05);
+                    const pajak = Math.floor((subtotal - diskon) * 0.10);
+                    return (
+                      <div className="border-t border-slate-100 pt-3 space-y-1.5">
+                        <div className="flex justify-between text-[11px]">
+                          <span className="text-slate-500">Subtotal</span>
+                          <span className="font-medium text-slate-700">Rp {subtotal.toLocaleString("id-ID")}</span>
+                        </div>
+                        <div className="flex justify-between text-[11px]">
+                          <span className="text-slate-500">Diskon</span>
+                          <span className="font-medium text-red-500">- Rp {diskon.toLocaleString("id-ID")}</span>
+                        </div>
+                        <div className="flex justify-between text-[11px]">
+                          <span className="text-slate-500">Pajak (10%)</span>
+                          <span className="font-medium text-slate-700">Rp {pajak.toLocaleString("id-ID")}</span>
+                        </div>
+                        <div className="flex justify-between items-center pt-1 border-t border-slate-100">
+                          <span className="text-sm font-bold text-slate-800">Total</span>
+                          <span className="text-base font-black text-violet-600">Rp {selectedTxData.total.toLocaleString("id-ID")}</span>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
+                    );
+                  })()}
 
-                {/* Items */}
-                <div>
-                  <p className="text-[10px] text-slate-400 font-bold mb-2 uppercase tracking-wider">Item ({mockDetail.items.length})</p>
-                  <div className="space-y-2">
-                    {mockDetail.items.map((item, i) => (
-                      <div key={i} className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center text-sm flex-shrink-0">
-                          {["☕","🍜","💧"][i]}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[11px] font-semibold text-slate-700 truncate">{item.name}</p>
-                          <p className="text-[10px] text-slate-400">{item.qty}x Rp {item.price.toLocaleString("id-ID")}</p>
-                        </div>
-                        <span className="text-[11px] font-bold text-slate-700">Rp {(item.qty * item.price).toLocaleString("id-ID")}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Summary */}
-                <div className="border-t border-slate-100 pt-3 space-y-1.5">
-                  <div className="flex justify-between text-[11px]">
-                    <span className="text-slate-500">Subtotal</span>
-                    <span className="font-medium text-slate-700">Rp {mockDetail.subtotal.toLocaleString("id-ID")}</span>
-                  </div>
-                  <div className="flex justify-between text-[11px]">
-                    <span className="text-slate-500">Diskon</span>
-                    <span className="font-medium text-red-500">- Rp {mockDetail.diskon.toLocaleString("id-ID")}</span>
-                  </div>
-                  <div className="flex justify-between text-[11px]">
-                    <span className="text-slate-500">Pajak (10%)</span>
-                    <span className="font-medium text-slate-700">Rp {mockDetail.pajak.toLocaleString("id-ID")}</span>
-                  </div>
-                  <div className="flex justify-between items-center pt-1 border-t border-slate-100">
-                    <span className="text-sm font-bold text-slate-800">Total</span>
-                    <span className="text-base font-black text-violet-600">Rp {mockDetail.total.toLocaleString("id-ID")}</span>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <button className="w-full bg-violet-50 hover:bg-violet-100 text-violet-700 font-semibold py-2.5 rounded-xl text-xs transition-colors">
-                  Lihat Detail
-                </button>
-                <div className="grid grid-cols-2 gap-2">
-                  <button className="flex items-center justify-center gap-1.5 bg-white border border-slate-200 text-slate-700 font-semibold py-2.5 rounded-xl text-xs hover:bg-slate-50 transition-colors">
-                    <Printer className="w-3.5 h-3.5" /> Cetak Ulang Struk
+                  {/* Actions */}
+                  <button className="w-full bg-violet-50 hover:bg-violet-100 text-violet-700 font-semibold py-2.5 rounded-xl text-xs transition-colors">
+                    Lihat Detail
                   </button>
-                  <button className="flex items-center justify-center gap-1.5 bg-red-50 border border-red-200 text-red-600 font-semibold py-2.5 rounded-xl text-xs hover:bg-red-100 transition-colors">
-                    <RotateCcw className="w-3.5 h-3.5" /> Refund
-                  </button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button className="flex items-center justify-center gap-1.5 bg-white border border-slate-200 text-slate-700 font-semibold py-2.5 rounded-xl text-xs hover:bg-slate-50 transition-colors">
+                      <Printer className="w-3.5 h-3.5" /> Cetak Ulang Struk
+                    </button>
+                    <button className="flex items-center justify-center gap-1.5 bg-red-50 border border-red-200 text-red-600 font-semibold py-2.5 rounded-xl text-xs hover:bg-red-100 transition-colors">
+                      <RotateCcw className="w-3.5 h-3.5" /> Refund
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </aside>
           )}
         </div>
