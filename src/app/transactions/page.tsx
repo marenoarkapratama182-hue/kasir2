@@ -101,6 +101,7 @@ function StatusBadge({ status }: { status: string }) {
   return <span className={`text-xs font-semibold ${map[status] || "text-slate-500"}`}>{status}</span>;
 }
 
+export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRow, setSelectedRow] = useState<string>("");
