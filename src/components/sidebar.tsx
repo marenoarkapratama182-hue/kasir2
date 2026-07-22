@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutGrid, Package, Users, Settings, LogOut, Receipt } from "lucide-react";
+import { LayoutGrid, Package, Users, Settings, LogOut, Receipt, PieChart } from "lucide-react";
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -14,6 +14,7 @@ export function Sidebar() {
       </div>
       
       <nav className="flex flex-col gap-6 flex-1 w-full items-center">
+        <NavItem href="/admin" icon={PieChart} label="Admin" active={pathname?.startsWith("/admin")} />
         <NavItem href="/" icon={LayoutGrid} label="POS" active={pathname === "/"} />
         <NavItem href="/products" icon={Package} label="Produk" active={pathname?.startsWith("/products")} />
         <NavItem href="/transactions" icon={Receipt} label="Transaksi" active={pathname?.startsWith("/transactions")} />
