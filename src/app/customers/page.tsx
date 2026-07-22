@@ -5,8 +5,7 @@ import {
   Search, Plus, Filter, Users, UserPlus, UserCheck, Star, 
   MoreHorizontal, Phone, Mail, RotateCcw, ChevronDown, 
   LayoutDashboard, ShoppingCart, FileText, Package, Bot, 
-  Settings, Bell, Crown, Mail as MailIcon
-, Home
+  Settings, Bell, Crown, Mail as MailIcon, X, Home
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
