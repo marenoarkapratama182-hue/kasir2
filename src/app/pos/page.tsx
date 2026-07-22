@@ -26,7 +26,6 @@ const navItems = [
   { label: "Transaksi", icon: FileText, href: "/transactions" },
   { label: "Produk", icon: Package, href: "/products" },
   { label: "Pelanggan", icon: Users, href: "/customers" },
-  { label: "Laporan", icon: BarChart2, href: "/transactions" },
   { label: "Chatbot AI", icon: Bot, href: "#", badge: "New" },
   { label: "Pengaturan", icon: Settings, href: "/settings" },
 ];
