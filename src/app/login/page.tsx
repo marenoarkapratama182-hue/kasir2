@@ -29,8 +29,8 @@ export default function LoginPage() {
       if (error) throw error;
       router.push("/pos");
       router.refresh();
-    } catch {
-      setError("Email atau kata sandi salah. Silakan coba lagi.");
+    } catch (err: any) {
+      setError(err.message || "Gagal masuk. Silakan coba lagi.");
     } finally {
       setLoading(false);
     }
