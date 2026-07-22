@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/sidebar";
-import { Search, Plus, User, Loader2, X } from "lucide-react";
+import { Search, Plus, Loader2, X } from "lucide-react";
 import { ChatWidget } from "@/components/chat-widget";
 import { createClient } from "@/utils/supabase/client";
 
