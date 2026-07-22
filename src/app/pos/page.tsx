@@ -25,7 +25,6 @@ const navItems = [
   { label: "Kasir", icon: ShoppingCart, href: "/pos", active: true },
   { label: "Transaksi", icon: FileText, href: "/transactions" },
   { label: "Produk", icon: Package, href: "/products" },
-  { label: "Inventori", icon: Warehouse, href: "/products" },
   { label: "Pelanggan", icon: Users, href: "/customers" },
   { label: "Laporan", icon: BarChart2, href: "/transactions" },
   { label: "Chatbot AI", icon: Bot, href: "#", badge: "New" },
