@@ -172,19 +172,7 @@ export default function POSPage() {
           ))}
         </nav>
 
-        {/* AI Widget */}
-        <div className="mx-3 mb-3 bg-white/10 rounded-2xl p-3 border border-white/15">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-400 to-purple-600 flex items-center justify-center">
-              <Bot className="w-4 h-4 text-white" />
-            </div>
-            <p className="text-white text-[11px] font-semibold">Hai! Saya AI Assistant</p>
-          </div>
-          <p className="text-purple-200 text-[10px] leading-tight mb-2">Perlu bantuan untuk transaksi hari ini?</p>
-          <button className="w-full bg-violet-600 hover:bg-violet-700 text-white text-[10px] font-bold py-1.5 rounded-lg transition-colors">
-            Tanya AI
-          </button>
-        </div>
+
 
         {/* User info */}
         <div className="px-3 pb-3">
