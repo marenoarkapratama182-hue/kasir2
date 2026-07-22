@@ -108,7 +108,13 @@ export default function TransactionsPage() {
   const [showDetail, setShowDetail] = useState(true);
   const [checked, setChecked] = useState<string[]>(["TRX-000125"]);
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const router = useRouter();
+  const itemsPerPage = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
 
   useEffect(() => {
     async function load() {
@@ -151,6 +157,9 @@ export default function TransactionsPage() {
     t.pelanggan.toLowerCase().includes(search.toLowerCase()) ||
     t.kasir.toLowerCase().includes(search.toLowerCase())
   );
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
+  const paginatedTransactions = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const maxTrx = Math.max(...peakHours.map(h => h.trx));
 
@@ -294,7 +303,7 @@ export default function TransactionsPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50">
-                      {filtered.map((t, i) => (
+                      {paginatedTransactions.map((t, i) => (
                         <tr key={i}
                           onClick={() => { setSelectedRow(t.id); setShowDetail(true); }}
                           className={`cursor-pointer transition-colors ${selectedRow === t.id ? "bg-violet-50" : "hover:bg-slate-50/80"}`}>
@@ -320,15 +329,36 @@ export default function TransactionsPage() {
 
                 {/* Pagination */}
                 <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-between flex-shrink-0">
-                  <span className="text-[11px] text-slate-500">Menampilkan 1 - 10 dari 124 transaksi</span>
+                  <span className="text-[11px] text-slate-500">
+                    Menampilkan {filtered.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, filtered.length)} dari {filtered.length} transaksi
+                  </span>
                   <div className="flex items-center gap-1">
-                    <button className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50"><ChevronLeft className="w-3.5 h-3.5 text-slate-400" /></button>
-                    {[1,2,3,4,5].map(p => (
-                      <button key={p} className={`w-7 h-7 rounded-lg text-xs font-medium flex items-center justify-center ${p===1 ? "bg-violet-600 text-white" : "border border-slate-200 text-slate-600 hover:bg-slate-50"}`}>{p}</button>
-                    ))}
-                    <span className="w-7 h-7 flex items-center justify-center text-slate-400 text-xs">...</span>
-                    <button className="w-7 h-7 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 flex items-center justify-center">13</button>
-                    <button className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50"><ChevronRight className="w-3.5 h-3.5 text-slate-400" /></button>
+                    <button 
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                      <ChevronLeft className="w-3.5 h-3.5 text-slate-400" />
+                    </button>
+                    
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter(p => p === 1 || p === totalPages || Math.abs(currentPage - p) <= 1)
+                      .map((p, i, arr) => (
+                        <div key={p} className="flex items-center gap-1">
+                          {i > 0 && arr[i - 1] !== p - 1 && <span className="w-7 h-7 flex items-center justify-center text-slate-400 text-xs">...</span>}
+                          <button
+                            onClick={() => setCurrentPage(p)}
+                            className={`w-7 h-7 rounded-lg text-xs font-medium flex items-center justify-center ${p === currentPage ? "bg-violet-600 text-white" : "border border-slate-200 text-slate-600 hover:bg-slate-50"}`}>
+                            {p}
+                          </button>
+                        </div>
+                      ))}
+
+                    <button 
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                      <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                    </button>
                   </div>
                 </div>
               </div>
