@@ -13,7 +13,6 @@ export default function CustomersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [newPhone, setNewPhone] = useState("");
-  const [newLevel, setNewLevel] = useState("Umum");
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -56,7 +55,6 @@ export default function CustomersPage() {
         .insert([{ 
           name: newName, 
           phone: newPhone, 
-          member_level: newLevel,
           point: 0
         }])
         .select();
@@ -68,7 +66,6 @@ export default function CustomersPage() {
         setIsModalOpen(false);
         setNewName("");
         setNewPhone("");
-        setNewLevel("Umum");
       }
     } catch (err) {
       console.error("Error adding customer:", err);
@@ -123,7 +120,6 @@ export default function CustomersPage() {
                   <tr>
                     <th className="px-6 py-4">Nama Pelanggan</th>
                     <th className="px-6 py-4">Kontak</th>
-                    <th className="px-6 py-4">Level</th>
                     <th className="px-6 py-4">Poin</th>
                     <th className="px-6 py-4 text-right">Aksi</th>
                   </tr>
@@ -138,11 +134,6 @@ export default function CustomersPage() {
                         <div className="font-bold text-slate-700">{c.name}</div>
                       </td>
                       <td className="px-6 py-4 text-slate-600">{c.phone || "-"}</td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${c.member_level === 'Gold' || c.member_level === 'VIP' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'}`}>
-                          {c.member_level || "Umum"}
-                        </span>
-                      </td>
                       <td className="px-6 py-4 font-semibold text-slate-700">{c.point || 0}</td>
                       <td className="px-6 py-4 text-right">
                         <button className="text-indigo-600 hover:text-indigo-800 font-medium text-xs">Detail</button>
@@ -151,7 +142,7 @@ export default function CustomersPage() {
                   ))}
                   {filteredCustomers.length === 0 && (
                      <tr>
-                       <td colSpan={5} className="px-6 py-8 text-center text-slate-400">Tidak ada data pelanggan.</td>
+                       <td colSpan={4} className="px-6 py-8 text-center text-slate-400">Tidak ada data pelanggan.</td>
                      </tr>
                   )}
                 </tbody>
@@ -195,19 +186,6 @@ export default function CustomersPage() {
                       className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                       placeholder="Contoh: 08123456789"
                     />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Level Member</label>
-                    <select 
-                      value={newLevel}
-                      onChange={(e) => setNewLevel(e.target.value)}
-                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-white"
-                    >
-                      <option value="Umum">Umum</option>
-                      <option value="Reguler">Reguler</option>
-                      <option value="Gold">Gold</option>
-                      <option value="VIP">VIP</option>
-                    </select>
                   </div>
                 </div>
                 <div className="mt-8 flex gap-3">
