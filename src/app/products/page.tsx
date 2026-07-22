@@ -16,6 +16,14 @@ export default function ProductsPage() {
   const [newPrice, setNewPrice] = useState("");
   const [newStock, setNewStock] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editId, setEditId] = useState<any>(null);
+  const [editName, setEditName] = useState("");
+  const [editCategory, setEditCategory] = useState("Sushi");
+  const [editPrice, setEditPrice] = useState("");
+  const [editStock, setEditStock] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     async function loadProducts() {
@@ -74,6 +82,48 @@ export default function ProductsPage() {
       alert("Gagal menambahkan produk.");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleEditClick = (product: any) => {
+    setEditId(product.id);
+    setEditName(product.name);
+    setEditCategory(product.category || "Sushi");
+    setEditPrice(product.price?.toString() || "0");
+    setEditStock(product.stock?.toString() || "0");
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editName.trim() || !editPrice || !editStock || !editId) return;
+    
+    setIsUpdating(true);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('products')
+        .update({ 
+          name: editName, 
+          category: editCategory, 
+          price: parseInt(editPrice),
+          stock: parseInt(editStock)
+        })
+        .eq('id', editId);
+        
+      if (error) throw error;
+      
+      setProducts(prev => prev.map(p => 
+        p.id === editId 
+          ? { ...p, name: editName, category: editCategory, price: parseInt(editPrice), stock: parseInt(editStock) }
+          : p
+      ));
+      setIsEditModalOpen(false);
+    } catch (err) {
+      console.error("Error updating product:", err);
+      alert("Gagal memperbarui produk.");
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -146,7 +196,12 @@ export default function ProductsPage() {
                       <td className="px-6 py-4 font-semibold text-slate-700">Rp {p.price?.toLocaleString('id-ID')}</td>
                       <td className="px-6 py-4 text-emerald-600 font-medium">{p.stock} Unit</td>
                       <td className="px-6 py-4 text-right">
-                        <button className="text-indigo-600 hover:text-indigo-800 font-medium text-xs">Edit</button>
+                        <button 
+                          onClick={() => handleEditClick(p)}
+                          className="text-indigo-600 hover:text-indigo-800 font-medium text-xs"
+                        >
+                          Edit
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -242,6 +297,91 @@ export default function ProductsPage() {
                     className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
                   >
                     {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Simpan'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Edit Produk */}
+        {isEditModalOpen && (
+          <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+              <div className="flex justify-between items-center p-6 border-b border-slate-100">
+                <h2 className="text-xl font-bold text-slate-800">Edit Produk</h2>
+                <button 
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <form onSubmit={handleUpdateProduct} className="p-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Nama Produk *</label>
+                    <input 
+                      type="text" 
+                      required
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Kategori</label>
+                    <select 
+                      value={editCategory}
+                      onChange={(e) => setEditCategory(e.target.value)}
+                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-white"
+                    >
+                      <option value="Sushi">Sushi</option>
+                      <option value="Sashimi">Sashimi</option>
+                      <option value="Appetizer">Appetizer</option>
+                      <option value="Minuman">Minuman</option>
+                      <option value="Lainnya">Lainnya</option>
+                    </select>
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Harga Jual (Rp) *</label>
+                      <input 
+                        type="number" 
+                        required
+                        min="0"
+                        value={editPrice}
+                        onChange={(e) => setEditPrice(e.target.value)}
+                        className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Stok Tersedia *</label>
+                      <input 
+                        type="number" 
+                        required
+                        min="0"
+                        value={editStock}
+                        onChange={(e) => setEditStock(e.target.value)}
+                        className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-8 flex gap-3">
+                  <button 
+                    type="button"
+                    onClick={() => setIsEditModalOpen(false)}
+                    className="flex-1 px-4 py-2 border border-slate-200 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors"
+                  >
+                    Batal
+                  </button>
+                  <button 
+                    type="submit"
+                    disabled={isUpdating}
+                    className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
+                  >
+                    {isUpdating ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Simpan Perubahan'}
                   </button>
                 </div>
               </form>
