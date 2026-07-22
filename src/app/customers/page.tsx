@@ -288,7 +288,6 @@ export default function CustomersPage() {
                           <th className="px-5 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Transaksi</th>
                           <th className="px-5 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Poin</th>
                           <th className="px-5 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Status</th>
-                          <th className="px-5 py-4 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider">Aksi</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
@@ -313,11 +312,6 @@ export default function CustomersPage() {
                               <span className={`text-[12px] font-bold ${c.status === 'Aktif' ? 'text-emerald-600' : 'text-red-500'}`}>
                                 {c.status}
                               </span>
-                            </td>
-                            <td className="px-5 py-4 text-center">
-                              <button className="p-1.5 text-slate-400 hover:bg-slate-100 rounded-lg transition-colors">
-                                <MoreHorizontal className="w-4 h-4" />
-                              </button>
                             </td>
                           </tr>
                         ))}
