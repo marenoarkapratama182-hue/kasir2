@@ -304,62 +304,7 @@ export default function POSPage() {
               )}
             </div>
 
-            {/* Bottom Info Panels */}
-            <div className="flex-shrink-0 border-t border-slate-200 bg-white grid grid-cols-3 divide-x divide-slate-200">
-              {/* Keyboard Shortcuts */}
-              <div className="p-3">
-                <p className="text-xs font-bold text-slate-700 mb-2">Pintasan Keyboard</p>
-                <div className="space-y-1">
-                  {[["F2","Cari Produk"],["F9","Bayar"],["F6","Tunda Transaksi"],["F7","Simpan Transaksi"],["F8","Cetak Struk"],["Ctrl+K","Buka Laci Kasir"]].map(([k,v]) => (
-                    <div key={k} className="flex items-center gap-2">
-                      <span className="bg-slate-100 text-slate-600 text-[9px] font-bold px-1.5 py-0.5 rounded border border-slate-200">{k}</span>
-                      <span className="text-slate-500 text-[10px]">{v}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
 
-              {/* Recent Transactions */}
-              <div className="p-3">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs font-bold text-slate-700">Transaksi Terakhir</p>
-                  <Link href="/transactions" className="text-[10px] text-violet-600 font-semibold hover:underline">Lihat semua</Link>
-                </div>
-                <div className="space-y-2">
-                  {recentTx.length === 0 ? (
-                    <p className="text-[10px] text-slate-400">Belum ada transaksi</p>
-                  ) : recentTx.map((tx: any, i) => (
-                    <div key={i} className="flex items-center justify-between">
-                      <div>
-                        <p className="text-violet-600 text-[10px] font-bold">{tx.invoice_no}</p>
-                        <p className="text-[9px] text-slate-400">{tx.customers?.name || "Pelanggan Umum"}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[10px] font-semibold text-slate-700">Rp {tx.total_amount?.toLocaleString("id-ID")}</p>
-                        <p className="text-[9px] text-slate-400">{new Date(tx.created_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* AI Insight */}
-              <div className="p-3 bg-gradient-to-br from-violet-50 to-indigo-50">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs font-bold text-slate-700">Promo & Insight AI</p>
-                  <span className="bg-violet-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                    <Bot className="w-2.5 h-2.5" /> AI Insight
-                  </span>
-                </div>
-                <p className="text-[10px] text-slate-600 leading-relaxed">
-                  💡 Pertimbangkan promo bundling untuk meningkatkan penjualan produk populer dan meningkatkan rata-rata nilai transaksi.
-                </p>
-                <div className="mt-2 flex items-center gap-1.5 text-[9px] text-slate-400">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse"></span>
-                  Data diperbarui secara real-time
-                </div>
-              </div>
-            </div>
           </main>
 
           {/* ── RIGHT: Cart Panel ── */}
