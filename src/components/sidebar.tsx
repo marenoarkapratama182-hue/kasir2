@@ -28,7 +28,7 @@ export function Sidebar() {
       
       <nav className="flex flex-col gap-6 flex-1 w-full items-center">
         <NavItem href="/admin" icon={PieChart} label="Admin" active={pathname?.startsWith("/admin")} />
-        <NavItem href="/" icon={LayoutGrid} label="POS" active={pathname === "/"} />
+        <NavItem href="/pos" icon={LayoutGrid} label="POS" active={pathname?.startsWith("/pos")} />
         <NavItem href="/products" icon={Package} label="Produk" active={pathname?.startsWith("/products")} />
         <NavItem href="/transactions" icon={Receipt} label="Transaksi" active={pathname?.startsWith("/transactions")} />
         <NavItem href="/customers" icon={Users} label="Pelanggan" active={pathname?.startsWith("/customers")} />

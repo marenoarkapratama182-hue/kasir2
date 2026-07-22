@@ -28,7 +28,7 @@ export default function LoginPage() {
         throw error;
       }
 
-      router.push("/");
+      router.push("/pos");
       router.refresh();
     } catch (err: any) {
       console.error("Login error:", err.message);

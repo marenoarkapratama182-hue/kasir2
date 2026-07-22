@@ -32,10 +32,11 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // redirect to login if no user and not on login page
+  // redirect to login if no user and not on login page or landing page
   if (
     !user &&
-    !request.nextUrl.pathname.startsWith('/login')
+    !request.nextUrl.pathname.startsWith('/login') &&
+    request.nextUrl.pathname !== '/'
   ) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone()
@@ -43,10 +44,10 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
   
-  // if user is logged in, and tries to go to login page, redirect to home
-  if (user && request.nextUrl.pathname.startsWith('/login')) {
+  // if user is logged in, and tries to go to login page or landing page, redirect to pos
+  if (user && (request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname === '/')) {
     const url = request.nextUrl.clone()
-    url.pathname = '/'
+    url.pathname = '/pos'
     return NextResponse.redirect(url)
   }
 
