@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/sidebar";
-import { Search, Plus, User, Loader2 } from "lucide-react";
+import { Search, Plus, User, Loader2, X } from "lucide-react";
 import { ChatWidget } from "@/components/chat-widget";
 import { createClient } from "@/utils/supabase/client";
 
@@ -10,6 +10,11 @@ export default function CustomersPage() {
   const [customers, setCustomers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newPhone, setNewPhone] = useState("");
+  const [newLevel, setNewLevel] = useState("Umum");
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     async function loadCustomers() {
@@ -39,6 +44,40 @@ export default function CustomersPage() {
     (c.phone && c.phone.includes(searchQuery))
   );
 
+  const handleAddCustomer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newName.trim()) return;
+    
+    setIsSaving(true);
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('customers')
+        .insert([{ 
+          name: newName, 
+          phone: newPhone, 
+          member_level: newLevel,
+          point: 0
+        }])
+        .select();
+        
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        setCustomers(prev => [...prev, data[0]]);
+        setIsModalOpen(false);
+        setNewName("");
+        setNewPhone("");
+        setNewLevel("Umum");
+      }
+    } catch (err) {
+      console.error("Error adding customer:", err);
+      alert("Gagal menambahkan pelanggan.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="flex h-screen w-full bg-slate-50 text-slate-900 font-sans overflow-hidden">
       <Sidebar />
@@ -49,7 +88,10 @@ export default function CustomersPage() {
             <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Pelanggan</h1>
             <p className="text-slate-500 text-sm mt-1">Kelola data pelanggan dan loyalitas</p>
           </div>
-          <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium shadow-sm shadow-indigo-200 flex items-center gap-2 hover:bg-indigo-700 transition-colors">
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium shadow-sm shadow-indigo-200 flex items-center gap-2 hover:bg-indigo-700 transition-colors"
+          >
             <Plus className="w-4 h-4" />
             Tambah Pelanggan
           </button>
@@ -117,6 +159,77 @@ export default function CustomersPage() {
             )}
           </div>
         </div>
+        
+        {/* Modal Tambah Pelanggan */}
+        {isModalOpen && (
+          <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+              <div className="flex justify-between items-center p-6 border-b border-slate-100">
+                <h2 className="text-xl font-bold text-slate-800">Tambah Pelanggan Baru</h2>
+                <button 
+                  onClick={() => setIsModalOpen(false)}
+                  className="text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <form onSubmit={handleAddCustomer} className="p-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Nama Lengkap *</label>
+                    <input 
+                      type="text" 
+                      required
+                      value={newName}
+                      onChange={(e) => setNewName(e.target.value)}
+                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                      placeholder="Masukkan nama pelanggan"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Nomor Kontak (HP)</label>
+                    <input 
+                      type="text" 
+                      value={newPhone}
+                      onChange={(e) => setNewPhone(e.target.value)}
+                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                      placeholder="Contoh: 08123456789"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Level Member</label>
+                    <select 
+                      value={newLevel}
+                      onChange={(e) => setNewLevel(e.target.value)}
+                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-white"
+                    >
+                      <option value="Umum">Umum</option>
+                      <option value="Reguler">Reguler</option>
+                      <option value="Gold">Gold</option>
+                      <option value="VIP">VIP</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="mt-8 flex gap-3">
+                  <button 
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="flex-1 px-4 py-2 border border-slate-200 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors"
+                  >
+                    Batal
+                  </button>
+                  <button 
+                    type="submit"
+                    disabled={isSaving}
+                    className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
+                  >
+                    {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Simpan'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
