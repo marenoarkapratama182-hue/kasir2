@@ -298,7 +298,7 @@ export default function ProductsPage() {
                           </div>
                           <div>
                             <div className="font-bold text-sm text-slate-800">{p.name}</div>
-                            <div className="text-[11px] text-slate-400 font-mono mt-0.5">ID: {p.id.substring(0,8)}...</div>
+                            <div className="text-[11px] text-slate-400 font-mono mt-0.5">ID: {p.id?.toString().substring(0,8)}...</div>
                           </div>
                         </td>
                         <td className="px-6 py-4">
