@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Search, LayoutDashboard, ShoppingCart, FileText, Package, Users,
   BarChart2, Bot, Settings, Bell, ChevronDown, Store, Receipt, 
-  Wallet, Shield, Upload, Info, RotateCcw, Save, Crown, MoreHorizontal
+  Wallet, Shield, Upload, Info, RotateCcw, Save, Crown, MoreHorizontal, Loader2
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -20,11 +20,21 @@ const navItems = [
   { label: "Pengaturan", icon: Settings, href: "/settings", active: true },
 ];
 
-function Toggle({ defaultChecked = false }) {
+function Toggle({ defaultChecked = false, onChange }: { defaultChecked?: boolean, onChange?: (c: boolean) => void }) {
   const [checked, setChecked] = useState(defaultChecked);
+  
+  // Sync state if defaultChecked changes (e.g. from api load)
+  useEffect(() => {
+    setChecked(defaultChecked);
+  }, [defaultChecked]);
+
   return (
     <button
-      onClick={() => setChecked(!checked)}
+      onClick={() => {
+        const newVal = !checked;
+        setChecked(newVal);
+        if(onChange) onChange(newVal);
+      }}
       className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${
         checked ? "bg-violet-600" : "bg-slate-200"
       }`}
@@ -40,6 +50,49 @@ function Toggle({ defaultChecked = false }) {
 
 export default function SettingsPage() {
   const router = useRouter();
+  
+  // Profile State
+  const [userId, setUserId] = useState("");
+  const [businessName, setBusinessName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  useEffect(() => {
+    async function loadProfile() {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (user) {
+          setUserId(user.id);
+          setEmail(user.email || "");
+          
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+            
+          if (profile) {
+            setBusinessName(profile.business_name || "");
+            setPhone(profile.phone || "");
+            setAddress(profile.address || "");
+          }
+        }
+      } catch (err) {
+        console.error("Error loading profile:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    
+    loadProfile();
+  }, []);
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -47,10 +100,39 @@ export default function SettingsPage() {
     router.push("/login");
   };
 
+  const handleSaveSettings = async () => {
+    if (!userId) return;
+    setIsSaving(true);
+    setSaveSuccess(false);
+    
+    try {
+      const supabase = createClient();
+      
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          business_name: businessName,
+          phone: phone,
+          address: address
+        })
+        .eq('id', userId);
+        
+      if (error) throw error;
+      
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (err) {
+      console.error("Error saving settings:", err);
+      alert("Gagal menyimpan pengaturan.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="flex h-screen w-full font-sans overflow-hidden text-slate-800" style={{ background: "#fcfcfd" }}>
       {/* ─── SIDEBAR ─── */}
-      <aside className="w-[240px] flex-shrink-0 flex flex-col h-full"
+      <aside className="w-[240px] flex-shrink-0 flex flex-col h-full z-20"
         style={{ background: "linear-gradient(180deg, #1a1150 0%, #231860 40%, #2d1f7e 100%)" }}>
         <div className="px-5 py-6 flex items-center gap-3">
           <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center flex-shrink-0">
@@ -96,9 +178,7 @@ export default function SettingsPage() {
       <div className="flex-1 flex flex-col h-full overflow-hidden relative">
         {/* Header */}
         <header className="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between flex-shrink-0">
-          <div className="flex-1">
-             {/* Not in original top header, the title is below, but search is here */}
-          </div>
+          <div className="flex-1"></div>
           
           <div className="flex items-center gap-6">
             <div className="relative w-80">
@@ -135,7 +215,11 @@ export default function SettingsPage() {
               <p className="text-slate-500 text-sm mt-1">Kelola preferensi sistem dan bisnis Anda</p>
             </div>
 
-            {/* Masonry-style Grid */}
+            {isLoading ? (
+              <div className="flex justify-center items-center h-64">
+                <Loader2 className="w-8 h-8 text-violet-600 animate-spin" />
+              </div>
+            ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 items-start">
               
               {/* Card 1: Profil Bisnis */}
@@ -149,21 +233,46 @@ export default function SettingsPage() {
                 
                 <div className="grid grid-cols-[110px_1fr] gap-y-4 items-center">
                   <label className="text-[13px] text-slate-600 font-medium">Nama Bisnis</label>
-                  <input type="text" defaultValue="Toko Sejahtera" className="w-full px-3 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:border-violet-500" />
+                  <input 
+                    type="text" 
+                    value={businessName}
+                    onChange={(e) => setBusinessName(e.target.value)}
+                    placeholder="Contoh: Toko Sejahtera" 
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:border-violet-500" 
+                  />
                   
                   <label className="text-[13px] text-slate-600 font-medium">Email</label>
-                  <input type="email" defaultValue="hello@tokosejahtera.com" className="w-full px-3 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:border-violet-500" />
+                  <input 
+                    type="email" 
+                    value={email}
+                    disabled
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-500 bg-slate-50 cursor-not-allowed" 
+                  />
                   
                   <label className="text-[13px] text-slate-600 font-medium">Nomor Telepon</label>
-                  <input type="text" defaultValue="0812-3456-7890" className="w-full px-3 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:border-violet-500" />
+                  <input 
+                    type="text" 
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="Contoh: 0812-3456-7890" 
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:border-violet-500" 
+                  />
                   
                   <label className="text-[13px] text-slate-600 font-medium self-start mt-2">Alamat</label>
-                  <textarea defaultValue="Jl. Merdeka No. 123, Bandung, Jawa Barat" rows={3} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:border-violet-500 resize-none" />
+                  <textarea 
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Masukkan alamat lengkap"
+                    rows={3} 
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:border-violet-500 resize-none" 
+                  />
                   
                   <label className="text-[13px] text-slate-600 font-medium self-start mt-4">Logo Usaha</label>
                   <div className="flex items-center gap-4 mt-2">
                     <div className="w-14 h-14 bg-violet-700 rounded-xl flex items-center justify-center shadow-md">
-                      <span className="text-white font-black text-xl">TS</span>
+                      <span className="text-white font-black text-xl">
+                        {businessName ? businessName.charAt(0).toUpperCase() : 'TS'}
+                      </span>
                     </div>
                     <div>
                       <button className="px-4 py-1.5 border border-slate-200 text-violet-600 text-[13px] font-semibold rounded-lg hover:bg-violet-50 transition-colors">
@@ -188,7 +297,7 @@ export default function SettingsPage() {
                   <label className="text-[13px] text-slate-600 font-medium">Outlet Aktif</label>
                   <div className="relative">
                     <select className="w-full pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 appearance-none bg-white focus:outline-none focus:border-violet-500">
-                      <option>Toko Sejahtera - Pusat</option>
+                      <option>{businessName || 'Toko'} - Pusat</option>
                     </select>
                     <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                   </div>
@@ -446,16 +555,27 @@ export default function SettingsPage() {
               </div>
 
             </div>
+            )}
           </div>
         </div>
 
         {/* Bottom Sticky Action Bar */}
         <div className="absolute bottom-0 left-0 w-full bg-white border-t border-slate-200 px-8 py-4 flex items-center justify-end gap-4 shadow-[0_-4px_10px_rgba(0,0,0,0.02)]">
+          {saveSuccess && (
+            <span className="text-emerald-600 font-medium text-[13px] mr-2 flex items-center gap-2">
+              <span className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-[10px]">✓</span> 
+              Tersimpan!
+            </span>
+          )}
           <button className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-700 font-semibold text-[13px] rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
             <RotateCcw className="w-4 h-4" /> Reset
           </button>
-          <button className="flex items-center gap-2 px-5 py-2.5 bg-violet-600 hover:bg-violet-700 text-white font-semibold text-[13px] rounded-xl shadow-sm transition-colors shadow-violet-200">
-            <Save className="w-4 h-4" /> Simpan Perubahan
+          <button 
+            onClick={handleSaveSettings}
+            disabled={isSaving}
+            className="flex items-center gap-2 px-5 py-2.5 bg-violet-600 hover:bg-violet-700 text-white font-semibold text-[13px] rounded-xl shadow-sm transition-colors shadow-violet-200 disabled:opacity-70 min-w-[170px] justify-center"
+          >
+            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Save className="w-4 h-4" /> Simpan Perubahan</>}
           </button>
         </div>
 
