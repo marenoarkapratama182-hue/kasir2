@@ -5,12 +5,14 @@ import {
   Search, LayoutDashboard, ShoppingCart, FileText, Package, Users,
   BarChart2, Bot, Settings, Bell, ChevronDown, Store, Receipt, 
   Wallet, Shield, Upload, Info, RotateCcw, Save, Crown, MoreHorizontal, Loader2
+, Home
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 
 const navItems = [
+  { label: "Beranda", icon: Home, href: "/" },
   { label: "Dashboard", icon: LayoutDashboard, href: "/admin" },
   { label: "Kasir", icon: ShoppingCart, href: "/pos" },
   { label: "Transaksi", icon: FileText, href: "/transactions" },

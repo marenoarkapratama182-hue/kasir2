@@ -5,6 +5,7 @@ import {
   Search, Bell, ChevronDown, LayoutDashboard, ShoppingCart, 
   FileText, Package, Users, Bot, Settings, Crown, ShoppingBag, 
   Receipt, Box, UserCheck, ArrowUpRight, Sparkles, TrendingUp
+, Home
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -12,6 +13,7 @@ import { createClient } from "@/utils/supabase/client";
 import { ChatWidget } from "@/components/chat-widget";
 
 const navItems = [
+  { label: "Beranda", icon: Home, href: "/" },
   { label: "Dashboard", icon: LayoutDashboard, href: "/admin", active: true },
   { label: "Kasir", icon: ShoppingCart, href: "/pos" },
   { label: "Transaksi", icon: FileText, href: "/transactions" },

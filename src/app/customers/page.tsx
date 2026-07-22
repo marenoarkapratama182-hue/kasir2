@@ -6,12 +6,14 @@ import {
   MoreHorizontal, Phone, Mail, RotateCcw, ChevronDown, 
   LayoutDashboard, ShoppingCart, FileText, Package, Bot, 
   Settings, Bell, Crown, Mail as MailIcon
+, Home
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 
 const navItems = [
+  { label: "Beranda", icon: Home, href: "/" },
   { label: "Dashboard", icon: LayoutDashboard, href: "/admin" },
   { label: "Kasir", icon: ShoppingCart, href: "/pos" },
   { label: "Transaksi", icon: FileText, href: "/transactions" },

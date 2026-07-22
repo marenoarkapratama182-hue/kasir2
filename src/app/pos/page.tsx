@@ -6,7 +6,7 @@ import {
   CheckCircle2, Loader2, User, Bell, ChevronDown, LayoutDashboard,
   ShoppingCart, FileText, Package, Warehouse, Users, BarChart2,
   Bot, Settings, LogOut, Scan, X, Tag, Printer, Bookmark,
-  Coffee, Fish, Soup, IceCream, Leaf, ShoppingBag, Sandwich, Wallet
+  Coffee, Fish, Soup, IceCream, Leaf, ShoppingBag, Sandwich, Wallet, Home
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import Link from "next/link";
@@ -21,6 +21,7 @@ const categoryEmoji: Record<string, string> = {
 const getEmoji = (category: string) => categoryEmoji[category] || categoryEmoji["default"];
 
 const navItems = [
+  { label: "Beranda", icon: Home, href: "/" },
   { label: "Dashboard", icon: LayoutDashboard, href: "/admin" },
   { label: "Kasir", icon: ShoppingCart, href: "/pos", active: true },
   { label: "Transaksi", icon: FileText, href: "/transactions" },
