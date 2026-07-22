@@ -2,323 +2,551 @@
 
 import { useState, useEffect } from "react";
 import {
-  Search, Filter, Plus, Home, ShoppingCart, FileText, Package,
-  Warehouse, Users, BarChart2, Settings, ChevronDown, ChevronRight,
-  TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Menu, Receipt
+  Search, Filter, Plus, ShoppingCart, FileText, Package, Warehouse,
+  Users, BarChart2, Settings, Bot, ChevronDown, ChevronRight, LogOut,
+  LayoutDashboard, Download, Calendar, Bell, X, Check, Clock,
+  CreditCard, QrCode, Banknote, Wallet, MoreVertical, Printer,
+  RotateCcw, Tag, ChevronLeft, ArrowUpRight, Activity
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 
+const navItems = [
+  { label: "Dashboard", icon: LayoutDashboard, href: "/admin" },
+  { label: "Kasir", icon: ShoppingCart, href: "/pos" },
+  { label: "Transaksi", icon: FileText, href: "/transactions", active: true },
+  { label: "Produk", icon: Package, href: "/products" },
+  { label: "Inventori", icon: Warehouse, href: "/products" },
+  { label: "Pelanggan", icon: Users, href: "/customers" },
+  { label: "Laporan", icon: BarChart2, href: "#" },
+  { label: "Chatbot AI", icon: Bot, href: "#", badge: "New" },
+  { label: "Pengaturan", icon: Settings, href: "/settings" },
+];
+
+const mockTransactions = [
+  { id: "TRX-000125", waktu: "09 Mei 2024\n10:45", pelanggan: "Andi Wijaya", kasir: "John Doe", outlet: "Toko Utama", metode: "QRIS", total: 125000, status: "Berhasil" },
+  { id: "TRX-000124", waktu: "09 Mei 2024\n10:45", pelanggan: "Siti Nurhaliza", kasir: "John Doe", outlet: "Toko Utama", metode: "Tunai", total: 78000, status: "Berhasil" },
+  { id: "TRX-000123", waktu: "09 Mei 2024\n09:58", pelanggan: "Budi Santoso", kasir: "John Doe", outlet: "Toko Utama", metode: "Debit/Kredit", total: 250000, status: "Berhasil" },
+  { id: "TRX-000122", waktu: "09 Mei 2024\n09:30", pelanggan: "Dewi Lestari", kasir: "Sarah A.", outlet: "Cabang Melati", metode: "E-Wallet", total: 65500, status: "Berhasil" },
+  { id: "TRX-000121", waktu: "09 Mei 2024\n09:05", pelanggan: "Rizky Pratama", kasir: "Sarah A.", outlet: "Cabang Melati", metode: "QRIS", total: 112000, status: "Pending" },
+  { id: "TRX-000120", waktu: "09 Mei 2024\n08:45", pelanggan: "—", kasir: "Budi K.", outlet: "Cabang Anggrek", metode: "Tunai", total: 45000, status: "Berhasil" },
+  { id: "TRX-000119", waktu: "09 Mei 2024\n08:20", pelanggan: "Maya Sari", kasir: "Budi K.", outlet: "Cabang Anggrek", metode: "Debit/Kredit", total: 320000, status: "Berhasil" },
+  { id: "TRX-000118", waktu: "09 Mei 2024\n08:05", pelanggan: "Ahmad Fauzi", kasir: "John Doe", outlet: "Toko Utama", metode: "E-Wallet", total: 60000, status: "Refund" },
+  { id: "TRX-000117", waktu: "09 Mei 2024\n07:55", pelanggan: "Lina Marlina", kasir: "Sarah A.", outlet: "Cabang Melati", metode: "QRIS", total: 95000, status: "Berhasil" },
+  { id: "TRX-000116", waktu: "09 Mei 2024\n07:40", pelanggan: "—", kasir: "Budi K.", outlet: "Cabang Anggrek", metode: "Tunai", total: 28000, status: "Dibatalkan" },
+];
+
+const mockDetail = {
+  id: "TRX-000125",
+  waktu: "09 Mei 2024 • 10:45 WIB",
+  pelanggan: "Andi Wijaya",
+  hp: "0812-3456-7890",
+  kasir: "John Doe",
+  outlet: "Toko Utama",
+  metode: "QRIS",
+  invoice: "INV/05/2024/000125",
+  timeline: [
+    { label: "Transaksi dibuat", time: "09 Mei 2024 • 10:45 WIB" },
+    { label: "Pembayaran diterima", time: "09 Mei 2024 • 10:46 WIB" },
+    { label: "Transaksi berhasil", time: "09 Mei 2024 • 10:46 WIB" },
+  ],
+  items: [
+    { name: "Kopi Kapal Api Special", qty: 1, price: 16000 },
+    { name: "Indomie Goreng", qty: 2, price: 3000 },
+    { name: "Aqua 600ml", qty: 2, price: 3000 },
+  ],
+  subtotal: 28000,
+  diskon: 2000,
+  pajak: 2600,
+  total: 28600,
+};
+
+const paymentMethods = [
+  { label: "QRIS", pct: 45, amount: 3710000, color: "#7c3aed" },
+  { label: "Tunai", pct: 25, amount: 2060000, color: "#10b981" },
+  { label: "Debit/Kredit", pct: 20, amount: 1648000, color: "#3b82f6" },
+  { label: "E-Wallet", pct: 10, amount: 827000, color: "#f59e0b" },
+];
+
+const peakHours = [
+  { hour: "06:00", trx: 5 },
+  { hour: "09:00", trx: 20 },
+  { hour: "12:00", trx: 30 },
+  { hour: "15:00", trx: 22 },
+  { hour: "18:00", trx: 25 },
+  { hour: "21:00", trx: 12 },
+];
+
+const recentActivity = [
+  { label: "Transaksi TRX-000125 berhasil", time: "10:46 WIB" },
+  { label: "Transaksi TRX-000124 berhasil", time: "10:15 WIB" },
+  { label: "Transaksi TRX-000118 Refund", time: "09:20 WIB" },
+  { label: "Transaksi TRX-000123 berhasil", time: "09:18 WIB" },
+  { label: "Transaksi TRX-000122 berhasil", time: "09:01 WIB" },
+];
+
+function MetodeBadge({ metode }: { metode: string }) {
+  if (metode === "QRIS") return <span className="flex items-center gap-1.5 text-purple-600 text-xs font-medium"><QrCode className="w-3.5 h-3.5" />QRIS</span>;
+  if (metode === "Tunai") return <span className="flex items-center gap-1.5 text-emerald-600 text-xs font-medium"><Banknote className="w-3.5 h-3.5" />Tunai</span>;
+  if (metode === "E-Wallet") return <span className="flex items-center gap-1.5 text-amber-600 text-xs font-medium"><Wallet className="w-3.5 h-3.5" />E-Wallet</span>;
+  return <span className="flex items-center gap-1.5 text-blue-600 text-xs font-medium"><CreditCard className="w-3.5 h-3.5" />Debit/Kredit</span>;
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const map: Record<string, string> = {
+    "Berhasil": "text-emerald-600",
+    "Pending": "text-amber-500",
+    "Dibatalkan": "text-red-500",
+    "Refund": "text-blue-500",
+  };
+  return <span className={`text-xs font-semibold ${map[status] || "text-slate-500"}`}>{status}</span>;
+}
+
 export default function TransactionsPage() {
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("Semua");
-  const [stats, setStats] = useState({ totalSales: 0, count: 0, avg: 0 });
+  const [transactions, setTransactions] = useState<any[]>(mockTransactions);
+  const [loading, setLoading] = useState(false);
+  const [selectedRow, setSelectedRow] = useState<string>("TRX-000125");
+  const [showDetail, setShowDetail] = useState(true);
+  const [checked, setChecked] = useState<string[]>(["TRX-000125"]);
+  const [search, setSearch] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
-    async function loadData() {
+    async function load() {
       try {
         const supabase = createClient();
         const { data } = await supabase
           .from("sales")
           .select("id, invoice_no, total_amount, payment_method, created_at, customers(name)")
-          .order("created_at", { ascending: false });
-
+          .order("created_at", { ascending: false })
+          .limit(10);
         if (data && data.length > 0) {
-          const mapped = data.map((item: any) => {
-            const d = new Date(item.created_at);
-            const dateStr = d.toLocaleDateString("id-ID", { day: '2-digit', month: 'short', year: 'numeric' });
-            const timeStr = d.toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' });
-            return {
-              id: item.invoice_no,
-              tanggal: `${dateStr} ${timeStr}`,
-              pelanggan: item.customers?.name || "Pelanggan Umum",
-              kasir: "Andi Darmawan", // Placeholder as requested by UI
-              total: item.total_amount,
-              metode: item.payment_method || "Tunai",
-              status: "Selesai" // Default status
-            };
-          });
+          const mapped = data.map((item: any, i: number) => ({
+            id: item.invoice_no,
+            waktu: new Date(item.created_at).toLocaleString("id-ID", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }),
+            pelanggan: item.customers?.name || "—",
+            kasir: "John Doe",
+            outlet: "Toko Utama",
+            metode: item.payment_method || "Tunai",
+            total: item.total_amount,
+            status: "Berhasil",
+          }));
           setTransactions(mapped);
-
-          const totalSales = mapped.reduce((a, c) => a + c.total, 0);
-          setStats({
-            totalSales,
-            count: mapped.length,
-            avg: Math.round(totalSales / mapped.length)
-          });
-        } else {
-          // Fallback to mock data to match UI if empty
-          setTransactions(mockTransactions);
-          setStats({ totalSales: 12750000, count: 212, avg: 60142 });
         }
-      } catch (err) {
-        console.error(err);
-        setTransactions(mockTransactions);
-        setStats({ totalSales: 12750000, count: 212, avg: 60142 });
-      } finally {
-        setLoading(false);
-      }
+      } catch {}
     }
-    loadData();
+    load();
   }, []);
 
-  const navItems = [
-    { label: "Dashboard", icon: Home, href: "/admin" },
-    { label: "Kasir", icon: ShoppingCart, href: "/pos" },
-    { label: "Transaksi", icon: FileText, href: "/transactions", active: true },
-    { label: "Produk", icon: Package, href: "/products" },
-    { label: "Inventori", icon: Warehouse, href: "/products" },
-    { label: "Pelanggan", icon: Users, href: "/customers" },
-    { label: "Supplier", icon: Users, href: "#" },
-    { label: "Laporan", icon: BarChart2, href: "#" },
-    { label: "Pengaturan", icon: Settings, href: "/settings" },
-  ];
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+  };
 
-  const tabs = ["Semua", "Selesai", "Tertunda", "Dibatalkan", "Retur"];
+  const toggleCheck = (id: string) =>
+    setChecked(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+
+  const filtered = transactions.filter(t =>
+    t.id.toLowerCase().includes(search.toLowerCase()) ||
+    t.pelanggan.toLowerCase().includes(search.toLowerCase()) ||
+    t.kasir.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const maxTrx = Math.max(...peakHours.map(h => h.trx));
 
   return (
-    <div className="flex h-screen w-full bg-[#fcfcfd] text-slate-800 font-sans overflow-hidden">
-      
+    <div className="flex h-screen w-full font-sans overflow-hidden text-slate-800" style={{ background: "#f4f5f9" }}>
       {/* ─── SIDEBAR ─── */}
-      <aside className="w-[240px] bg-white border-r border-slate-100 flex flex-col h-full flex-shrink-0">
-        <div className="px-5 py-6 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-violet-600 flex items-center justify-center shadow-sm">
-              <ShoppingCart className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-bold text-[15px] text-slate-800 tracking-tight">Kasir Pintar</span>
+      <aside className="w-[155px] flex-shrink-0 flex flex-col h-full"
+        style={{ background: "linear-gradient(180deg, #1a1150 0%, #231860 40%, #2d1f7e 100%)" }}>
+        <div className="px-4 py-5 flex items-center gap-2.5 border-b border-white/10">
+          <div className="w-8 h-8 bg-white/15 rounded-lg flex items-center justify-center border border-white/20 flex-shrink-0">
+            <ShoppingCart className="w-4 h-4 text-white" />
           </div>
-          <Menu className="w-5 h-5 text-slate-400 cursor-pointer" />
+          <div>
+            <p className="text-white font-bold text-[13px] leading-none">Kasir Pintar</p>
+            <p className="text-purple-300 text-[9px] mt-0.5 leading-tight">Smart POS with AI</p>
+          </div>
         </div>
-
-        <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
+        <nav className="flex-1 py-3 overflow-y-auto">
           {navItems.map((item) => (
             <Link key={item.label} href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium ${
-                item.active 
-                  ? "bg-[#f3f0fa] text-violet-700" 
-                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
-              }`}>
+              className={`flex items-center gap-3 px-4 py-2.5 mx-2 rounded-xl mb-0.5 transition-all text-sm ${item.active ? "bg-violet-600 text-white shadow-lg" : "text-purple-200 hover:bg-white/10 hover:text-white"}`}>
               <item.icon className="w-4 h-4 flex-shrink-0" />
-              {item.label}
+              <span className="font-medium text-xs">{item.label}</span>
+              {item.badge && <span className="ml-auto bg-emerald-400 text-[9px] text-white font-bold px-1.5 py-0.5 rounded-full">{item.badge}</span>}
             </Link>
           ))}
         </nav>
-
-        <div className="p-4 border-t border-slate-100 space-y-3">
-          {/* Outlet */}
-          <div className="border border-slate-200 rounded-xl p-3 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors">
-            <div>
-              <p className="text-[10px] text-slate-400 font-medium mb-0.5">Outlet Aktif</p>
-              <p className="text-xs font-bold text-slate-700">Toko Utama</p>
+        <div className="mx-3 mb-3 bg-white/10 rounded-2xl p-3 border border-white/15">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-400 to-purple-600 flex items-center justify-center">
+              <Bot className="w-4 h-4 text-white" />
             </div>
-            <ChevronDown className="w-4 h-4 text-slate-400" />
+            <p className="text-white text-[11px] font-semibold">Hai! Saya AI Assistant</p>
           </div>
-          
-          {/* User */}
-          <div className="border border-slate-200 rounded-xl p-3 flex items-center gap-3 cursor-pointer hover:bg-slate-50 transition-colors">
-            <div className="w-8 h-8 rounded-full bg-violet-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
-              AD
+          <p className="text-purple-200 text-[10px] leading-tight mb-2">Perlu bantuan untuk transaksi hari ini?</p>
+          <button className="w-full bg-violet-600 hover:bg-violet-700 text-white text-[10px] font-bold py-1.5 rounded-lg transition-colors">Tanya AI</button>
+        </div>
+        <div className="px-3 pb-3">
+          <button onClick={handleLogout} className="w-full flex items-center gap-2 bg-white/5 hover:bg-white/10 rounded-xl px-3 py-2.5 border border-white/10 transition-colors">
+            <div className="w-7 h-7 rounded-full bg-violet-500 flex items-center justify-center flex-shrink-0">
+              <span className="text-white text-[10px] font-bold">JD</span>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold text-slate-700 truncate">Andi Darmawan</p>
-              <p className="text-[10px] text-slate-400">Kasir</p>
+            <div className="flex-1 text-left min-w-0">
+              <p className="text-white text-[11px] font-semibold truncate">John Doe</p>
+              <p className="text-purple-300 text-[9px]">Kasir Utama</p>
             </div>
-            <ChevronDown className="w-4 h-4 text-slate-400 flex-shrink-0" />
-          </div>
+            <LogOut className="w-3 h-3 text-purple-300" />
+          </button>
+          <p className="text-purple-400 text-[9px] text-center mt-2">© 2024 Kasir Pintar · v2.1.0</p>
         </div>
       </aside>
 
-      {/* ─── MAIN CONTENT ─── */}
-      <main className="flex-1 flex flex-col h-full overflow-hidden">
-        
+      {/* ─── MAIN ─── */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Header */}
-        <header className="px-8 pt-8 pb-6 flex items-center justify-between flex-shrink-0">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800">Transaksi</h1>
-            <p className="text-slate-500 text-sm mt-1">Kelola semua transaksi penjualan</p>
+        <header className="bg-white border-b border-slate-200 px-5 py-3 flex items-center gap-3 flex-shrink-0">
+          <div className="flex-1">
+            <h1 className="text-lg font-bold text-slate-800">Transaksi</h1>
+            <p className="text-slate-400 text-xs">Kelola dan pantau semua transaksi penjualan</p>
           </div>
-          <div className="flex items-center gap-3">
-            {/* Search */}
-            <div className="relative w-64">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input 
-                type="text" 
-                placeholder="Cari transaksi..." 
-                className="w-full pl-9 pr-12 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-50 transition-all placeholder:text-slate-400 shadow-sm"
-              />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                <span className="bg-slate-100 text-slate-400 text-[10px] px-1.5 py-0.5 rounded font-mono">⌘</span>
-                <span className="bg-slate-100 text-slate-400 text-[10px] px-1.5 py-0.5 rounded font-mono">K</span>
-              </div>
-            </div>
-            
-            {/* Filter */}
-            <button className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 shadow-sm transition-colors">
-              <Filter className="w-4 h-4" /> Filter
-            </button>
-            
-            {/* New Transaction */}
-            <Link href="/pos" className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white rounded-xl px-4 py-2.5 text-sm font-bold shadow-sm shadow-violet-200 transition-colors">
-              <Plus className="w-4 h-4" /> Transaksi Baru
-            </Link>
+          <button className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-600 hover:bg-slate-100 transition-colors">
+            <span>🏬</span><span className="font-medium">Semua Cabang</span><ChevronDown className="w-3.5 h-3.5" />
+          </button>
+          <div className="relative w-64">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input value={search} onChange={e => setSearch(e.target.value)} type="text" placeholder="Cari transaksi, pelanggan, atau kasir..." className="w-full pl-9 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100" />
+            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[9px] text-slate-400 bg-slate-200 px-1 py-0.5 rounded">F2</span>
+          </div>
+          <button className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-600 hover:bg-slate-100">
+            <Calendar className="w-3.5 h-3.5" /><span className="font-medium">09 Mei 2024 - 09 Mei 2024</span><ChevronDown className="w-3.5 h-3.5" />
+          </button>
+          <button className="relative w-8 h-8 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center hover:bg-slate-100">
+            <Bell className="w-4 h-4 text-slate-500" />
+            <span className="absolute -top-1 -right-1 w-4 h-4 bg-violet-500 rounded-full text-white text-[8px] font-bold flex items-center justify-center">3</span>
+          </button>
+          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 cursor-pointer hover:bg-slate-100">
+            <div className="w-7 h-7 rounded-full bg-violet-500 flex items-center justify-center"><span className="text-white text-[10px] font-bold">JD</span></div>
+            <div><p className="text-xs font-semibold text-slate-700">John Doe</p><p className="text-[10px] text-slate-400">Kasir Utama</p></div>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 ml-1" />
           </div>
         </header>
 
-        {/* Stats Grid */}
-        <div className="px-8 pb-6 grid grid-cols-4 gap-4 flex-shrink-0">
-          <StatCard 
-            title="Total Penjualan Hari Ini" 
-            value={`Rp ${stats.totalSales.toLocaleString('id-ID')}`}
-            trend="+12,5%" 
-            isPositive={true} 
-          />
-          <StatCard 
-            title="Total Transaksi Hari Ini" 
-            value={stats.count.toString()}
-            trend="+8,3%" 
-            isPositive={true} 
-          />
-          <StatCard 
-            title="Rata-rata Transaksi" 
-            value={`Rp ${stats.avg.toLocaleString('id-ID')}`}
-            trend="+5,7%" 
-            isPositive={true} 
-          />
-          <StatCard 
-            title="Total Retur Hari Ini" 
-            value="Rp 320.000"
-            trend="+3,2%" 
-            isPositive={false} 
-          />
-        </div>
-
-        {/* Tabs */}
-        <div className="px-8 border-b border-slate-200 flex gap-6 flex-shrink-0">
-          {tabs.map((tab) => (
-            <button key={tab} onClick={() => setActiveTab(tab)}
-              className={`pb-4 text-sm font-medium transition-colors relative ${
-                activeTab === tab ? "text-violet-600" : "text-slate-500 hover:text-slate-700"
-              }`}>
-              {tab}
-              {activeTab === tab && (
-                <div className="absolute bottom-0 left-0 w-full h-0.5 bg-violet-600 rounded-t-full"></div>
-              )}
-            </button>
-          ))}
-        </div>
-
-        {/* Table Area */}
-        <div className="flex-1 px-8 py-6 overflow-hidden flex flex-col">
-          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm flex-1 flex flex-col overflow-hidden">
-            <div className="flex-1 overflow-auto">
-              <table className="w-full text-left border-collapse min-w-[900px]">
-                <thead className="bg-white sticky top-0 z-10">
-                  <tr>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-700 border-b border-slate-100">No. Invoice</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-700 border-b border-slate-100">Tanggal</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-700 border-b border-slate-100">Pelanggan</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-700 border-b border-slate-100">Kasir</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-700 border-b border-slate-100">Total</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-700 border-b border-slate-100">Metode Pembayaran</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-700 border-b border-slate-100">Status</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-700 border-b border-slate-100">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {loading ? (
-                    <tr><td colSpan={8} className="p-8 text-center text-slate-400 text-sm">Memuat data...</td></tr>
-                  ) : (
-                    transactions.map((t, i) => (
-                      <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-6 py-3.5 text-sm font-medium text-slate-700">{t.id}</td>
-                        <td className="px-6 py-3.5 text-sm text-slate-600">{t.tanggal}</td>
-                        <td className="px-6 py-3.5 text-sm text-slate-600">{t.pelanggan}</td>
-                        <td className="px-6 py-3.5 text-sm text-slate-600">{t.kasir}</td>
-                        <td className="px-6 py-3.5 text-sm font-semibold text-slate-700">Rp {t.total.toLocaleString('id-ID')}</td>
-                        <td className="px-6 py-3.5 text-sm">
-                          <PaymentBadge method={t.metode} />
-                        </td>
-                        <td className="px-6 py-3.5">
-                          <StatusBadge status={t.status} />
-                        </td>
-                        <td className="px-6 py-3.5">
-                          <button className="flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold text-violet-600 hover:bg-violet-50 transition-colors">
-                            Detail <ChevronRight className="w-3 h-3" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+        {/* Body */}
+        <div className="flex-1 flex overflow-hidden">
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {/* Stat Cards */}
+            <div className="px-5 py-4 grid grid-cols-4 gap-3 flex-shrink-0">
+              {[
+                { label: "Total Transaksi Hari Ini", value: "124", trend: "+18% dari kemarin", icon: "📊", bg: "bg-violet-50", iconBg: "bg-violet-500", text: "text-violet-600" },
+                { label: "Omzet Hari Ini", value: "Rp 8.245.000", trend: "+24% dari kemarin", icon: "💰", bg: "bg-emerald-50", iconBg: "bg-emerald-500", text: "text-emerald-600" },
+                { label: "Transaksi Berhasil", value: "112", trend: "90,3% dari total", icon: "✅", bg: "bg-blue-50", iconBg: "bg-blue-500", text: "text-blue-600" },
+                { label: "Retur / Dibatalkan", value: "12", trend: "9,7% dari total", icon: "↩", bg: "bg-orange-50", iconBg: "bg-orange-500", text: "text-orange-600" },
+              ].map((s, i) => (
+                <div key={i} className={`${s.bg} rounded-2xl p-4 flex items-center gap-3`}>
+                  <div className={`${s.iconBg} w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg flex-shrink-0`}>{s.icon}</div>
+                  <div>
+                    <p className="text-[10px] text-slate-500 font-medium">{s.label}</p>
+                    <p className={`text-lg font-bold ${s.text}`}>{s.value}</p>
+                    <p className={`text-[10px] font-semibold ${s.text}`}>{s.trend}</p>
+                  </div>
+                </div>
+              ))}
             </div>
-            
-            {/* Pagination */}
-            <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between bg-white">
-              <span className="text-xs text-slate-500 font-medium">Menampilkan 1 - 10 dari 128 transaksi</span>
-              <div className="flex items-center gap-1.5">
-                <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50"><ChevronRight className="w-4 h-4 rotate-180" /></button>
-                <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#f3f0fa] text-violet-700 font-bold text-xs border border-violet-100">1</button>
-                <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium text-xs">2</button>
-                <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium text-xs">3</button>
-                <span className="w-8 h-8 flex items-center justify-center text-slate-400 text-xs">...</span>
-                <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium text-xs">13</button>
-                <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"><ChevronRight className="w-4 h-4" /></button>
+
+            {/* Filter Bar */}
+            <div className="px-5 pb-3 flex items-center gap-2 flex-shrink-0">
+              <div className="relative flex-1 max-w-xs">
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input type="text" placeholder="Cari ID / Pelanggan / Kasir..." className="w-full pl-8 pr-3 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-violet-500 shadow-sm" />
+              </div>
+              <button className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-600 hover:bg-slate-50 shadow-sm">09/05/2024 - 09/05/2024 <Calendar className="w-3 h-3" /></button>
+              {["Semua Metode", "Semua Status", "Semua Kasir"].map(f => (
+                <button key={f} className="flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-600 hover:bg-slate-50 shadow-sm whitespace-nowrap">{f}<ChevronDown className="w-3 h-3 ml-1" /></button>
+              ))}
+              <div className="flex-1" />
+              <button className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 shadow-sm">
+                <Download className="w-3.5 h-3.5 text-violet-600" /> Ekspor
+              </button>
+              <Link href="/pos" className="flex items-center gap-1.5 bg-violet-600 hover:bg-violet-700 text-white rounded-lg px-3 py-2 text-xs font-bold shadow-sm transition-colors whitespace-nowrap">
+                <Plus className="w-3.5 h-3.5" /> Transaksi Baru
+              </Link>
+            </div>
+
+            {/* Table */}
+            <div className="flex-1 px-5 pb-3 overflow-hidden flex flex-col">
+              <div className="bg-white border border-slate-200 rounded-2xl shadow-sm flex-1 flex flex-col overflow-hidden">
+                <div className="flex-1 overflow-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead className="bg-white sticky top-0 z-10 border-b border-slate-100">
+                      <tr>
+                        <th className="px-4 py-3 w-8"><input type="checkbox" className="rounded accent-violet-600" /></th>
+                        <th className="px-4 py-3 text-[11px] font-bold text-slate-600 whitespace-nowrap">ID Transaksi</th>
+                        <th className="px-4 py-3 text-[11px] font-bold text-slate-600 whitespace-nowrap">Waktu</th>
+                        <th className="px-4 py-3 text-[11px] font-bold text-slate-600 whitespace-nowrap">Pelanggan</th>
+                        <th className="px-4 py-3 text-[11px] font-bold text-slate-600 whitespace-nowrap">Kasir</th>
+                        <th className="px-4 py-3 text-[11px] font-bold text-slate-600 whitespace-nowrap">Outlet</th>
+                        <th className="px-4 py-3 text-[11px] font-bold text-slate-600 whitespace-nowrap">Metode Bayar</th>
+                        <th className="px-4 py-3 text-[11px] font-bold text-slate-600 whitespace-nowrap">Total</th>
+                        <th className="px-4 py-3 text-[11px] font-bold text-slate-600 whitespace-nowrap">Status</th>
+                        <th className="px-4 py-3 w-8"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                      {filtered.map((t, i) => (
+                        <tr key={i}
+                          onClick={() => { setSelectedRow(t.id); setShowDetail(true); }}
+                          className={`cursor-pointer transition-colors ${selectedRow === t.id ? "bg-violet-50" : "hover:bg-slate-50/80"}`}>
+                          <td className="px-4 py-3">
+                            <input type="checkbox" checked={checked.includes(t.id)} onChange={() => toggleCheck(t.id)} onClick={e => e.stopPropagation()} className="rounded accent-violet-600" />
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="text-violet-600 font-semibold text-xs hover:underline cursor-pointer">{t.id}</span>
+                          </td>
+                          <td className="px-4 py-3 text-xs text-slate-600 whitespace-pre-line leading-tight">{t.waktu}</td>
+                          <td className="px-4 py-3 text-xs text-slate-600">{t.pelanggan}</td>
+                          <td className="px-4 py-3 text-xs text-slate-600">{t.kasir}</td>
+                          <td className="px-4 py-3 text-xs text-slate-600">{t.outlet}</td>
+                          <td className="px-4 py-3"><MetodeBadge metode={t.metode} /></td>
+                          <td className="px-4 py-3 text-xs font-semibold text-slate-700">Rp {t.total.toLocaleString("id-ID")}</td>
+                          <td className="px-4 py-3"><StatusBadge status={t.status} /></td>
+                          <td className="px-4 py-3"><MoreVertical className="w-4 h-4 text-slate-400 hover:text-slate-600 cursor-pointer" /></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination */}
+                <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-between flex-shrink-0">
+                  <span className="text-[11px] text-slate-500">Menampilkan 1 - 10 dari 124 transaksi</span>
+                  <div className="flex items-center gap-1">
+                    <button className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50"><ChevronLeft className="w-3.5 h-3.5 text-slate-400" /></button>
+                    {[1,2,3,4,5].map(p => (
+                      <button key={p} className={`w-7 h-7 rounded-lg text-xs font-medium flex items-center justify-center ${p===1 ? "bg-violet-600 text-white" : "border border-slate-200 text-slate-600 hover:bg-slate-50"}`}>{p}</button>
+                    ))}
+                    <span className="w-7 h-7 flex items-center justify-center text-slate-400 text-xs">...</span>
+                    <button className="w-7 h-7 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 flex items-center justify-center">13</button>
+                    <button className="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center hover:bg-slate-50"><ChevronRight className="w-3.5 h-3.5 text-slate-400" /></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Analytics */}
+            <div className="px-5 pb-4 grid grid-cols-3 gap-3 flex-shrink-0">
+              {/* Payment Method Donut */}
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+                <h3 className="text-xs font-bold text-slate-700 mb-3">Metode Pembayaran Terpopuler</h3>
+                <div className="flex items-center gap-4">
+                  <div className="relative w-16 h-16 flex-shrink-0">
+                    <svg viewBox="0 0 36 36" className="w-16 h-16 -rotate-90">
+                      {(() => {
+                        let cumPct = 0;
+                        return paymentMethods.map((m, i) => {
+                          const circumference = 2 * Math.PI * 14;
+                          const offset = circumference * (1 - m.pct / 100);
+                          const rotation = cumPct * 3.6;
+                          cumPct += m.pct;
+                          return (
+                            <circle key={i} cx="18" cy="18" r="14" fill="none"
+                              stroke={m.color} strokeWidth="4"
+                              strokeDasharray={`${m.pct / 100 * circumference} ${circumference}`}
+                              strokeDashoffset={-cumPct * circumference / 100 + m.pct * circumference / 100}
+                              style={{ transition: "all 0.5s" }}
+                            />
+                          );
+                        });
+                      })()}
+                    </svg>
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    {paymentMethods.map((m, i) => (
+                      <div key={i} className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-2 h-2 rounded-full" style={{ background: m.color }}></div>
+                          <span className="text-[10px] text-slate-600">{m.label}</span>
+                          <span className="text-[10px] font-bold text-slate-800">{m.pct}%</span>
+                        </div>
+                        <span className="text-[10px] text-slate-500">Rp {(m.amount/1000000).toFixed(1)}jt</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="mt-3 pt-2 border-t border-slate-100 flex justify-between">
+                  <span className="text-[10px] text-slate-500">Total Omzet</span>
+                  <span className="text-[10px] font-bold text-violet-600">Rp 8.245.000</span>
+                </div>
+              </div>
+
+              {/* Peak Hours Bar Chart */}
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+                <h3 className="text-xs font-bold text-slate-700 mb-1">Jam Ramai Transaksi</h3>
+                <div className="flex items-end gap-2 h-20 mt-4">
+                  {peakHours.map((h, i) => (
+                    <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                      <div className="w-full rounded-t-md transition-all"
+                        style={{ height: `${(h.trx / maxTrx) * 72}px`, background: h.trx === maxTrx ? "#7c3aed" : "#ddd6fe" }}
+                      />
+                      <span className="text-[8px] text-slate-400 whitespace-nowrap">{h.hour}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[10px] text-slate-400 mt-2 text-center">12:00 - 13:00 · 26 transaksi</p>
+              </div>
+
+              {/* Recent Activity */}
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+                <h3 className="text-xs font-bold text-slate-700 mb-3">Aktivitas Terbaru</h3>
+                <div className="space-y-2">
+                  {recentActivity.map((a, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                        <Check className="w-2.5 h-2.5 text-emerald-500" />
+                      </div>
+                      <p className="text-[10px] text-slate-600 flex-1 leading-tight">{a.label}</p>
+                      <span className="text-[9px] text-slate-400 flex-shrink-0">{a.time}</span>
+                    </div>
+                  ))}
+                </div>
+                <button className="mt-3 w-full text-[10px] text-violet-600 font-semibold hover:underline flex items-center justify-center gap-1">
+                  Lihat Semua Aktivitas <ChevronRight className="w-3 h-3" />
+                </button>
               </div>
             </div>
           </div>
-        </div>
-      </main>
-    </div>
-  );
-}
 
-function StatCard({ title, value, trend, isPositive }: any) {
-  return (
-    <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
-      <h3 className="text-xs font-semibold text-slate-500 mb-3">{title}</h3>
-      <p className="text-xl font-bold text-slate-800 mb-3">{value}</p>
-      <div className="flex items-center gap-1.5">
-        {isPositive ? (
-           <span className="flex items-center text-[10px] font-bold text-emerald-600">
-             <ArrowUpRight className="w-3 h-3 mr-0.5" /> {trend}
-           </span>
-        ) : (
-           <span className="flex items-center text-[10px] font-bold text-red-500">
-             <ArrowUpRight className="w-3 h-3 mr-0.5" /> {trend}
-           </span>
-        )}
-        <span className="text-[10px] font-medium text-slate-400">dari kemarin</span>
+          {/* ─── DETAIL PANEL ─── */}
+          {showDetail && (
+            <aside className="w-72 bg-white border-l border-slate-200 flex flex-col h-full flex-shrink-0 overflow-y-auto">
+              <div className="px-4 pt-4 pb-3 flex items-center justify-between border-b border-slate-100 flex-shrink-0">
+                <h2 className="text-sm font-bold text-slate-800">Detail Transaksi</h2>
+                <button onClick={() => setShowDetail(false)} className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors">
+                  <X className="w-3.5 h-3.5 text-slate-500" />
+                </button>
+              </div>
+
+              <div className="p-4 space-y-4">
+                {/* ID + Status */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] text-slate-400 font-medium">ID Transaksi</p>
+                    <p className="text-sm font-bold text-slate-800 mt-0.5">{mockDetail.id}</p>
+                  </div>
+                  <span className="bg-emerald-100 text-emerald-600 text-[10px] font-bold px-2.5 py-1 rounded-full">Berhasil</span>
+                </div>
+                <div>
+                  <p className="text-[10px] text-slate-400 font-medium">Waktu</p>
+                  <p className="text-xs text-slate-700 font-medium mt-0.5">{mockDetail.waktu}</p>
+                </div>
+
+                {/* Customer */}
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <p className="text-[10px] text-slate-400 font-medium mb-2">Pelanggan</p>
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0">
+                      <span className="text-violet-600 font-bold text-[10px]">AW</span>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-slate-700">{mockDetail.pelanggan}</p>
+                      <p className="text-[10px] text-slate-400">{mockDetail.hp}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Info */}
+                <div>
+                  <p className="text-[10px] text-slate-400 font-bold mb-2 uppercase tracking-wider">Informasi Transaksi</p>
+                  <div className="space-y-2">
+                    {[["Kasir", mockDetail.kasir],["Outlet", mockDetail.outlet],["No. Invoice", mockDetail.invoice]].map(([k,v]) => (
+                      <div key={k} className="flex justify-between">
+                        <span className="text-[11px] text-slate-500">{k}</span>
+                        <span className="text-[11px] font-semibold text-slate-700">{v}</span>
+                      </div>
+                    ))}
+                    <div className="flex justify-between items-center">
+                      <span className="text-[11px] text-slate-500">Metode Bayar</span>
+                      <MetodeBadge metode={mockDetail.metode} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Timeline */}
+                <div>
+                  <p className="text-[10px] text-slate-400 font-bold mb-2 uppercase tracking-wider">Timeline Transaksi</p>
+                  <div className="relative pl-4">
+                    <div className="absolute left-1.5 top-2 bottom-2 w-px bg-violet-200"></div>
+                    {mockDetail.timeline.map((t, i) => (
+                      <div key={i} className="flex gap-3 mb-3 relative">
+                        <div className="w-3 h-3 rounded-full bg-violet-600 border-2 border-white shadow absolute -left-4 top-0.5 flex-shrink-0"></div>
+                        <div>
+                          <p className="text-[11px] font-semibold text-slate-700">{t.label}</p>
+                          <p className="text-[9px] text-slate-400">{t.time}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Items */}
+                <div>
+                  <p className="text-[10px] text-slate-400 font-bold mb-2 uppercase tracking-wider">Item ({mockDetail.items.length})</p>
+                  <div className="space-y-2">
+                    {mockDetail.items.map((item, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center text-sm flex-shrink-0">
+                          {["☕","🍜","💧"][i]}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[11px] font-semibold text-slate-700 truncate">{item.name}</p>
+                          <p className="text-[10px] text-slate-400">{item.qty}x Rp {item.price.toLocaleString("id-ID")}</p>
+                        </div>
+                        <span className="text-[11px] font-bold text-slate-700">Rp {(item.qty * item.price).toLocaleString("id-ID")}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Summary */}
+                <div className="border-t border-slate-100 pt-3 space-y-1.5">
+                  <div className="flex justify-between text-[11px]">
+                    <span className="text-slate-500">Subtotal</span>
+                    <span className="font-medium text-slate-700">Rp {mockDetail.subtotal.toLocaleString("id-ID")}</span>
+                  </div>
+                  <div className="flex justify-between text-[11px]">
+                    <span className="text-slate-500">Diskon</span>
+                    <span className="font-medium text-red-500">- Rp {mockDetail.diskon.toLocaleString("id-ID")}</span>
+                  </div>
+                  <div className="flex justify-between text-[11px]">
+                    <span className="text-slate-500">Pajak (10%)</span>
+                    <span className="font-medium text-slate-700">Rp {mockDetail.pajak.toLocaleString("id-ID")}</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-1 border-t border-slate-100">
+                    <span className="text-sm font-bold text-slate-800">Total</span>
+                    <span className="text-base font-black text-violet-600">Rp {mockDetail.total.toLocaleString("id-ID")}</span>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <button className="w-full bg-violet-50 hover:bg-violet-100 text-violet-700 font-semibold py-2.5 rounded-xl text-xs transition-colors">
+                  Lihat Detail
+                </button>
+                <div className="grid grid-cols-2 gap-2">
+                  <button className="flex items-center justify-center gap-1.5 bg-white border border-slate-200 text-slate-700 font-semibold py-2.5 rounded-xl text-xs hover:bg-slate-50 transition-colors">
+                    <Printer className="w-3.5 h-3.5" /> Cetak Ulang Struk
+                  </button>
+                  <button className="flex items-center justify-center gap-1.5 bg-red-50 border border-red-200 text-red-600 font-semibold py-2.5 rounded-xl text-xs hover:bg-red-100 transition-colors">
+                    <RotateCcw className="w-3.5 h-3.5" /> Refund
+                  </button>
+                </div>
+              </div>
+            </aside>
+          )}
+        </div>
       </div>
     </div>
   );
 }
-
-function PaymentBadge({ method }: { method: string }) {
-  if (method.toLowerCase().includes("tunai")) return <span className="flex items-center gap-1.5 text-blue-500 font-semibold"><Receipt className="w-3.5 h-3.5" /> Tunai</span>;
-  if (method.toLowerCase().includes("qris")) return <span className="flex items-center gap-1.5 text-purple-500 font-semibold"><Package className="w-3.5 h-3.5" /> QRIS</span>;
-  if (method.toLowerCase().includes("wallet")) return <span className="flex items-center gap-1.5 text-orange-500 font-semibold"><FileText className="w-3.5 h-3.5" /> E-Wallet</span>;
-  return <span className="flex items-center gap-1.5 text-sky-500 font-semibold"><Warehouse className="w-3.5 h-3.5" /> Transfer</span>;
-}
-
-function StatusBadge({ status }: { status: string }) {
-  if (status === "Selesai") return <span className="text-emerald-500 font-semibold">Selesai</span>;
-  if (status === "Tertunda") return <span className="text-amber-500 font-semibold">Tertunda</span>;
-  if (status === "Dibatalkan") return <span className="text-red-500 font-semibold">Dibatalkan</span>;
-  return <span>{status}</span>;
-}
-
-const mockTransactions = [
-  { id: "INV-250717-0001", tanggal: "17 Jul 2026 10:30", pelanggan: "Pelanggan Umum", kasir: "Andi Darmawan", total: 125000, metode: "Tunai", status: "Selesai" },
-  { id: "INV-250717-0002", tanggal: "17 Jul 2026 10:15", pelanggan: "Budi Santoso", kasir: "Siti Aisyah", total: 250000, metode: "QRIS", status: "Selesai" },
-  { id: "INV-250717-0003", tanggal: "17 Jul 2026 10:05", pelanggan: "Pelanggan Umum", kasir: "Andi Darmawan", total: 75000, metode: "E-Wallet", status: "Selesai" },
-  { id: "INV-250717-0004", tanggal: "17 Jul 2026 09:45", pelanggan: "Rina Wulandari", kasir: "Siti Aisyah", total: 180000, metode: "Transfer", status: "Selesai" },
-  { id: "INV-250717-0005", tanggal: "17 Jul 2026 09:30", pelanggan: "Pelanggan Umum", kasir: "Andi Darmawan", total: 95000, metode: "Tunai", status: "Tertunda" },
-  { id: "INV-250717-0006", tanggal: "17 Jul 2026 09:10", pelanggan: "Dewi Lestari", kasir: "Siti Aisyah", total: 320000, metode: "QRIS", status: "Dibatalkan" },
-  { id: "INV-250717-0007", tanggal: "17 Jul 2026 09:00", pelanggan: "Pelanggan Umum", kasir: "Andi Darmawan", total: 140000, metode: "Transfer", status: "Selesai" },
-  { id: "INV-250717-0008", tanggal: "17 Jul 2026 08:50", pelanggan: "Pelanggan Umum", kasir: "Siti Aisyah", total: 60000, metode: "E-Wallet", status: "Selesai" },
-  { id: "INV-250717-0009", tanggal: "17 Jul 2026 08:30", pelanggan: "Budi Santoso", kasir: "Andi Darmawan", total: 210000, metode: "Tunai", status: "Selesai" },
-  { id: "INV-250717-0010", tanggal: "17 Jul 2026 08:15", pelanggan: "Pelanggan Umum", kasir: "Siti Aisyah", total: 85000, metode: "Transfer", status: "Selesai" }
-];
