@@ -201,12 +201,7 @@ export default function POSPage() {
             <p className="text-slate-400 text-xs">Proses penjualan dengan cepat dan mudah</p>
           </div>
 
-          {/* Branch Selector */}
-          <button className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-100 transition-colors">
-            <span className="text-slate-400">🏬</span>
-            <span className="font-medium text-xs">Semua Cabang</span>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-          </button>
+
 
           {/* Search */}
           <div className="relative w-72">
