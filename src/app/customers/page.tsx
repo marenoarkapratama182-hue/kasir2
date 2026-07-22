@@ -77,6 +77,31 @@ export default function CustomersPage() {
     router.push("/login");
   };
 
+  const handleSaveCustomer = async () => {
+    if (!newName) return;
+    setIsSaving(true);
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('customers')
+        .insert([{ name: newName, phone: newPhone }])
+        .select();
+        
+      if (!error && data) {
+        setNewName("");
+        setNewPhone("");
+        setIsModalOpen(false);
+        window.location.reload();
+      } else {
+        console.error(error);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const filteredCustomers = customers.filter(c => 
     c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
     (c.phone && c.phone.includes(searchQuery))
@@ -269,6 +294,7 @@ export default function CustomersPage() {
                   </button>
 
                   <button 
+                    onClick={() => setIsModalOpen(true)}
                     className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white text-[13px] rounded-xl font-medium shadow-sm hover:bg-violet-700 transition-colors"
                   >
                     <Plus className="w-4 h-4" /> Tambah Pelanggan
@@ -344,6 +370,62 @@ export default function CustomersPage() {
           </div>
         </div>
       </div>
+
+      {/* Modal Tambah Pelanggan */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-slate-800">Tambah Pelanggan Baru</h2>
+              <button 
+                onClick={() => setIsModalOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Nama Lengkap</label>
+                <input 
+                  type="text" 
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  placeholder="Contoh: Budi Santoso"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-violet-500 focus:bg-white transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">No. Telepon / WhatsApp</label>
+                <input 
+                  type="text" 
+                  value={newPhone}
+                  onChange={(e) => setNewPhone(e.target.value)}
+                  placeholder="Contoh: 081234567890"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-violet-500 focus:bg-white transition-all"
+                />
+              </div>
+            </div>
+            
+            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-3">
+              <button 
+                onClick={() => setIsModalOpen(false)}
+                className="px-5 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-200 rounded-xl transition-colors"
+              >
+                Batal
+              </button>
+              <button 
+                onClick={handleSaveCustomer}
+                disabled={!newName || isSaving}
+                className="px-5 py-2.5 bg-violet-600 hover:bg-violet-700 text-white text-sm font-bold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {isSaving ? "Menyimpan..." : "Simpan Pelanggan"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
