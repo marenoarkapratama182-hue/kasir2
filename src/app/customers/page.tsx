@@ -121,20 +121,7 @@ export default function CustomersPage() {
           ))}
         </nav>
 
-        <div className="p-4">
-          <div className="bg-[#241762] rounded-2xl p-4 border border-white/5 relative overflow-hidden">
-            <div className="absolute -right-4 -top-4 w-20 h-20 bg-amber-400/20 blur-xl rounded-full"></div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <Crown className="w-4 h-4 text-amber-400" />
-              <p className="text-white text-xs font-bold">Kasir Pintar Premium</p>
-            </div>
-            <p className="text-purple-200 text-[10px] mb-3">Aktif hingga 30 Nov 2025</p>
-            <button className="w-full flex items-center justify-between bg-white/5 hover:bg-white/10 border border-white/10 text-white text-[11px] font-semibold py-2 px-3 rounded-xl transition-colors">
-              Kelola Langganan
-              <ChevronDown className="w-3.5 h-3.5 -rotate-90 text-purple-300" />
-            </button>
-          </div>
-        </div>
+
       </aside>
 
       {/* ─── MAIN ─── */}
@@ -358,131 +345,7 @@ export default function CustomersPage() {
                 </div>
               </div>
 
-              {/* Right Sidebar - Detail Pelanggan */}
-              <div className="w-[320px] flex-shrink-0 flex flex-col gap-6">
-                
-                {/* Profile Detail Card */}
-                <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col items-center">
-                  <div className="w-full flex justify-between items-center mb-4">
-                    <h3 className="font-bold text-slate-800 text-[14px]">Detail Pelanggan</h3>
-                    <button className="text-slate-400 hover:bg-slate-50 p-1 rounded-md">
-                      <MoreHorizontal className="w-4 h-4" />
-                    </button>
-                  </div>
 
-                  <img 
-                    src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&h=150&fit=crop" 
-                    alt="Budi Santoso" 
-                    className="w-20 h-20 rounded-full object-cover border-4 border-slate-50 mb-3"
-                  />
-                  
-                  <div className="flex items-center gap-2 mb-1">
-                    <h2 className="text-[18px] font-bold text-slate-800">Budi Santoso</h2>
-                    <span className="bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded border border-purple-200">Platinum</span>
-                  </div>
-                  <p className="text-[11px] text-slate-500 mb-5">Pelanggan sejak 12 Jan 2023</p>
-
-                  <div className="w-full flex flex-col gap-2.5 mb-6">
-                    <div className="flex items-center gap-3 text-[12px] text-slate-600 font-medium">
-                      <Phone className="w-3.5 h-3.5 text-slate-400" />
-                      0812-3456-7890
-                    </div>
-                    <div className="flex items-center gap-3 text-[12px] text-slate-600 font-medium">
-                      <MailIcon className="w-3.5 h-3.5 text-slate-400" />
-                      budi.santoso@email.com
-                    </div>
-                  </div>
-
-                  <div className="w-full flex flex-col gap-3 mb-6 pt-5 border-t border-slate-100">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-2 text-[12px] text-slate-500 font-medium">
-                        <ShoppingCart className="w-3.5 h-3.5" /> Total Belanja
-                      </div>
-                      <span className="font-bold text-[13px] text-slate-800">Rp 18.450.000</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-2 text-[12px] text-slate-500 font-medium">
-                        <Star className="w-3.5 h-3.5 text-amber-500" /> Poin Loyalitas
-                      </div>
-                      <span className="font-bold text-[13px] text-slate-800">24.150 poin</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-2 text-[12px] text-slate-500 font-medium">
-                        <FileText className="w-3.5 h-3.5" /> Transaksi Terakhir
-                      </div>
-                      <span className="font-bold text-[12px] text-slate-800">17 Jul 2026, 10:30</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-2 text-[12px] text-slate-500 font-medium">
-                        <LayoutDashboard className="w-3.5 h-3.5" /> Status
-                      </div>
-                      <span className="font-bold text-[12px] text-emerald-600">Aktif</span>
-                    </div>
-                  </div>
-
-                  <div className="w-full flex flex-col gap-2">
-                    <button className="w-full py-2.5 bg-violet-600 text-white font-bold text-[13px] rounded-xl flex items-center justify-center gap-2 hover:bg-violet-700 transition-colors shadow-sm">
-                      <Search className="w-4 h-4" /> Lihat Detail
-                    </button>
-                    <button className="w-full py-2.5 bg-white border border-violet-200 text-violet-600 font-bold text-[13px] rounded-xl flex items-center justify-center gap-2 hover:bg-violet-50 transition-colors">
-                      <Mail className="w-4 h-4" /> Kirim Promo
-                    </button>
-                  </div>
-                </div>
-
-                {/* Insight Loyalitas Card */}
-                <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-                  <div className="flex justify-between items-center mb-5">
-                    <h3 className="font-bold text-slate-800 text-[14px]">Insight Loyalitas</h3>
-                    <div className="text-[11px] text-slate-500 font-medium flex items-center gap-1 cursor-pointer">
-                      30 Hari Terakhir <ChevronDown className="w-3 h-3" />
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-4 mb-6">
-                    <div className="flex-1">
-                      <p className="text-[11px] text-slate-500 mb-0.5">Transaksi</p>
-                      <p className="text-xl font-bold text-slate-800">12</p>
-                      <p className="text-[10px] text-emerald-600 font-semibold mt-0.5">↑ 9% dari periode lalu</p>
-                    </div>
-                    <div className="w-px bg-slate-100"></div>
-                    <div className="flex-1">
-                      <p className="text-[11px] text-slate-500 mb-0.5">Poin Diperoleh</p>
-                      <p className="text-xl font-bold text-slate-800">1.250</p>
-                      <p className="text-[10px] text-emerald-600 font-semibold mt-0.5">↑ 14% dari periode lalu</p>
-                    </div>
-                  </div>
-
-                  {/* Dummy Line Chart */}
-                  <div className="w-full h-24 relative flex items-end justify-between px-2 pb-2">
-                    {/* Simplified SVG Chart visual */}
-                    <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 40">
-                      <path d="M0,40 L0,20 Q10,10 20,25 T40,15 T60,25 T80,10 T100,15 L100,40 Z" fill="url(#grad)" opacity="0.5"/>
-                      <path d="M0,20 Q10,10 20,25 T40,15 T60,25 T80,10 T100,15" fill="none" stroke="#7c3aed" strokeWidth="1.5" strokeLinecap="round"/>
-                      <defs>
-                        <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.2"/>
-                          <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0"/>
-                        </linearGradient>
-                      </defs>
-                    </svg>
-                    <div className="w-1.5 h-1.5 bg-violet-600 rounded-full z-10 -ml-1 mb-[50%] border-2 border-white"></div>
-                    <div className="w-1.5 h-1.5 bg-violet-600 rounded-full z-10 mb-[20%] border-2 border-white"></div>
-                    <div className="w-1.5 h-1.5 bg-violet-600 rounded-full z-10 mb-[40%] border-2 border-white"></div>
-                    <div className="w-1.5 h-1.5 bg-violet-600 rounded-full z-10 mb-[65%] border-2 border-white"></div>
-                  </div>
-                  
-                  {/* X Axis Labels */}
-                  <div className="flex justify-between text-[9px] text-slate-400 font-medium px-1 mt-1">
-                    <span>20 Jun</span>
-                    <span>27 Jun</span>
-                    <span>4 Jul</span>
-                    <span>11 Jul</span>
-                    <span>18 Jul</span>
-                  </div>
-                </div>
-
-              </div>
             </div>
           </div>
         </div>
