@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/sidebar";
-import { Search, Plus, Filter, Package, Loader2 } from "lucide-react";
+import { Search, Plus, Filter, Package, Loader2, X } from "lucide-react";
 import { ChatWidget } from "@/components/chat-widget";
 import { createClient } from "@/utils/supabase/client";
 
@@ -10,6 +10,12 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newCategory, setNewCategory] = useState("Sushi");
+  const [newPrice, setNewPrice] = useState("");
+  const [newStock, setNewStock] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     async function loadProducts() {
@@ -36,6 +42,41 @@ export default function ProductsPage() {
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleAddProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newName.trim() || !newPrice || !newStock) return;
+    
+    setIsSaving(true);
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('products')
+        .insert([{ 
+          name: newName, 
+          category: newCategory, 
+          price: parseInt(newPrice),
+          stock: parseInt(newStock)
+        }])
+        .select();
+        
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        setProducts(prev => [...prev, data[0]]);
+        setIsModalOpen(false);
+        setNewName("");
+        setNewCategory("Sushi");
+        setNewPrice("");
+        setNewStock("");
+      }
+    } catch (err) {
+      console.error("Error adding product:", err);
+      alert("Gagal menambahkan produk.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="flex h-screen w-full bg-slate-50 text-slate-900 font-sans overflow-hidden">
       <Sidebar />
@@ -46,7 +87,10 @@ export default function ProductsPage() {
             <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Manajemen Produk</h1>
             <p className="text-slate-500 text-sm mt-1">Kelola katalog menu dan inventori</p>
           </div>
-          <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium shadow-sm shadow-indigo-200 flex items-center gap-2 hover:bg-indigo-700 transition-colors">
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium shadow-sm shadow-indigo-200 flex items-center gap-2 hover:bg-indigo-700 transition-colors"
+          >
             <Plus className="w-4 h-4" />
             Tambah Produk
           </button>
@@ -116,6 +160,94 @@ export default function ProductsPage() {
             )}
           </div>
         </div>
+
+        {/* Modal Tambah Produk */}
+        {isModalOpen && (
+          <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+              <div className="flex justify-between items-center p-6 border-b border-slate-100">
+                <h2 className="text-xl font-bold text-slate-800">Tambah Produk Baru</h2>
+                <button 
+                  onClick={() => setIsModalOpen(false)}
+                  className="text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <form onSubmit={handleAddProduct} className="p-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Nama Produk *</label>
+                    <input 
+                      type="text" 
+                      required
+                      value={newName}
+                      onChange={(e) => setNewName(e.target.value)}
+                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                      placeholder="Masukkan nama produk"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Kategori</label>
+                    <select 
+                      value={newCategory}
+                      onChange={(e) => setNewCategory(e.target.value)}
+                      className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-white"
+                    >
+                      <option value="Sushi">Sushi</option>
+                      <option value="Sashimi">Sashimi</option>
+                      <option value="Appetizer">Appetizer</option>
+                      <option value="Minuman">Minuman</option>
+                      <option value="Lainnya">Lainnya</option>
+                    </select>
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Harga Jual (Rp) *</label>
+                      <input 
+                        type="number" 
+                        required
+                        min="0"
+                        value={newPrice}
+                        onChange={(e) => setNewPrice(e.target.value)}
+                        className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Stok Awal *</label>
+                      <input 
+                        type="number" 
+                        required
+                        min="0"
+                        value={newStock}
+                        onChange={(e) => setNewStock(e.target.value)}
+                        className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-8 flex gap-3">
+                  <button 
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="flex-1 px-4 py-2 border border-slate-200 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors"
+                  >
+                    Batal
+                  </button>
+                  <button 
+                    type="submit"
+                    disabled={isSaving}
+                    className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
+                  >
+                    {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Simpan'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
