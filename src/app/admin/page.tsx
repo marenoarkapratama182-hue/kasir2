@@ -33,6 +33,7 @@ export default function AdminDashboardPage() {
     activeCustomers: 0
   });
   const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
+  const [topProducts, setTopProducts] = useState<any[]>([]);
 
   useEffect(() => {
     async function loadDashboardData() {
@@ -62,25 +63,59 @@ export default function AdminDashboardPage() {
           }));
         }
 
+        const { data: saleItems } = await supabase
+          .from('sale_items')
+          .select('qty, product_id, price, products(name)');
+          
+        let productsSold = 312;
+        let topProd: any[] = [];
+        if (saleItems && saleItems.length > 0) {
+          productsSold = saleItems.reduce((sum, item) => sum + (item.qty || 0), 0);
+          
+          const productMap: any = {};
+          saleItems.forEach((item: any) => {
+            const pid = item.product_id;
+            if (!productMap[pid]) {
+              productMap[pid] = {
+                name: item.products?.name || "Produk Tidak Diketahui",
+                sold: 0,
+                val: 0
+              };
+            }
+            productMap[pid].sold += (item.qty || 0);
+            productMap[pid].val += ((item.qty || 0) * (item.price || 0));
+          });
+          
+          topProd = Object.values(productMap)
+            .sort((a: any, b: any) => b.sold - a.sold)
+            .slice(0, 5)
+            .map((p: any, idx) => ({
+              rank: idx + 1,
+              name: p.name,
+              sold: p.sold,
+              val: `Rp ${p.val.toLocaleString('id-ID')}`,
+              img: "https://images.unsplash.com/photo-1579888944880-d9223bb34691?w=50&h=50&fit=crop"
+            }));
+        }
+
         setStats({
           totalRevenue: totalRevenue || 18450000,
           totalTransactions: totalTransactions || 156,
-          totalProductsSold: 312,
+          totalProductsSold: productsSold || 312,
           activeCustomers: 86
         });
         
-        // If we have less than 5 real transactions, fill with dummy to match UI
-        if (recent.length < 5) {
-          const dummies = [
-            { id: "INV-180624-0156", customer: "Budi Santoso", date: "18 Jun 2024", time: "10:30", amount: 450000, method: "QRIS" },
-            { id: "INV-180624-0155", customer: "Siti Aisyah", date: "18 Jun 2024", time: "10:15", amount: 230000, method: "Tunai" },
-            { id: "INV-180624-0154", customer: "Andi Darmawan", date: "18 Jun 2024", time: "09:58", amount: 120000, method: "E-Wallet" },
-            { id: "INV-180624-0153", customer: "Dewi Lestari", date: "18 Jun 2024", time: "09:41", amount: 180000, method: "QRIS" },
-            { id: "INV-180624-0152", customer: "Rina Wulandari", date: "18 Jun 2024", time: "09:22", amount: 95000, method: "Tunai" },
+        if (topProd.length === 0) {
+          topProd = [
+            { rank: 1, name: "Es Kopi Susu", sold: 82, val: "Rp 2.460.000", img: "https://images.unsplash.com/photo-1579888944880-d9223bb34691?w=50&h=50&fit=crop" },
+            { rank: 2, name: "Nasi Goreng Spesial", sold: 60, val: "Rp 1.860.000", img: "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=50&h=50&fit=crop" },
+            { rank: 3, name: "Mineral Water 600ml", sold: 48, val: "Rp 672.000", img: "https://images.unsplash.com/photo-1548839140-29a749e1bc4c?w=50&h=50&fit=crop" },
+            { rank: 4, name: "Kopi Americano", sold: 41, val: "Rp 615.000", img: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=50&h=50&fit=crop" },
+            { rank: 5, name: "Roti Bakar Cokelat", sold: 36, val: "Rp 540.000", img: "https://images.unsplash.com/photo-1525351326368-efbb5cb6814d?w=50&h=50&fit=crop" },
           ];
-          recent = [...recent, ...dummies.slice(recent.length, 5)];
         }
         
+        setTopProducts(topProd);
         setRecentTransactions(recent.slice(0, 5));
       } catch (error) {
         console.error("Error loading admin data:", error);
@@ -412,13 +447,7 @@ export default function AdminDashboardPage() {
                 </div>
 
                 <div className="flex flex-col gap-4">
-                  {[
-                    { rank: 1, name: "Es Kopi Susu", sold: 82, val: "Rp 2.460.000", img: "https://images.unsplash.com/photo-1579888944880-d9223bb34691?w=50&h=50&fit=crop" },
-                    { rank: 2, name: "Nasi Goreng Spesial", sold: 60, val: "Rp 1.860.000", img: "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=50&h=50&fit=crop" },
-                    { rank: 3, name: "Mineral Water 600ml", sold: 48, val: "Rp 672.000", img: "https://images.unsplash.com/photo-1548839140-29a749e1bc4c?w=50&h=50&fit=crop" },
-                    { rank: 4, name: "Kopi Americano", sold: 41, val: "Rp 615.000", img: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=50&h=50&fit=crop" },
-                    { rank: 5, name: "Roti Bakar Cokelat", sold: 36, val: "Rp 540.000", img: "https://images.unsplash.com/photo-1525351326368-efbb5cb6814d?w=50&h=50&fit=crop" },
-                  ].map((p, i) => (
+                  {topProducts.map((p, i) => (
                     <div key={i} className="flex items-center gap-3">
                       <div className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold ${
                         p.rank === 1 ? 'bg-amber-100 text-amber-700' : 
@@ -440,155 +469,36 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Bottom Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 gap-6">
               
-              {/* Stok Hampir Habis */}
-              <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="font-bold text-slate-800 text-[14px]">Stok Hampir Habis</h3>
-                  <button className="text-[11px] font-medium text-violet-600 hover:underline flex items-center">
-                    Lihat Semua <ChevronDown className="w-3 h-3 -rotate-90 ml-0.5" />
-                  </button>
-                </div>
-                <div className="flex flex-col gap-4">
-                  {[
-                    { name: "Susu UHT Full Cream 1L", cat: "Minuman", stock: 3, img: "https://images.unsplash.com/photo-1563636619-e9143da7973b?w=50&h=50&fit=crop" },
-                    { name: "Sirup Gula Aren 650ml", cat: "Bahan Baku", stock: 4, img: "https://images.unsplash.com/photo-1581451007802-14eb066be3f0?w=50&h=50&fit=crop" },
-                    { name: "Biji Kopi Arabica 250g", cat: "Bahan Baku", stock: 5, img: "https://images.unsplash.com/photo-1559525839-b184a4d698c7?w=50&h=50&fit=crop" },
-                    { name: "Teh Hijau Celup 25s", cat: "Bahan Baku", stock: 6, img: "https://images.unsplash.com/photo-1627490214695-1033230c1be7?w=50&h=50&fit=crop" },
-                  ].map((p, i) => (
-                    <div key={i} className="flex justify-between items-center py-1">
-                      <div className="flex gap-3 items-center">
-                        <img src={p.img} alt={p.name} className="w-10 h-10 rounded-lg object-cover border border-slate-100" />
-                        <div>
-                          <p className="text-[12px] font-bold text-slate-800 truncate max-w-[130px]">{p.name}</p>
-                          <p className="text-[10px] text-slate-400">{p.cat}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[11px] font-bold text-slate-700">Stok <span className="text-slate-800">{p.stock}</span></p>
-                        <span className="text-[9px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded border border-red-100 mt-0.5 inline-block">Kritis</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Transaksi Terbaru */}
-              <div className="lg:col-span-2 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="font-bold text-slate-800 text-[14px]">Transaksi Terbaru</h3>
-                  <Link href="/transactions" className="text-[11px] font-medium text-violet-600 hover:underline flex items-center">
-                    Lihat Semua <ChevronDown className="w-3 h-3 -rotate-90 ml-0.5" />
-                  </Link>
+              {/* Insight AI */}
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex-1 relative overflow-hidden flex flex-col">
+                {/* Background decoration */}
+                <div className="absolute right-0 top-0 w-32 h-32 bg-violet-100 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
+                
+                <div className="flex justify-between items-center mb-4 relative z-10">
+                  <h3 className="font-bold text-slate-800 text-[14px]">Insight AI</h3>
+                  <span className="bg-violet-100 text-violet-700 text-[10px] font-bold px-2 py-0.5 rounded border border-violet-200">New</span>
                 </div>
                 
-                <div className="flex-1">
-                  <table className="w-full text-left">
-                    <thead className="border-b border-slate-100">
-                      <tr>
-                        <th className="pb-3 text-[11px] font-semibold text-slate-500 w-[150px]">No. Invoice</th>
-                        <th className="pb-3 text-[11px] font-semibold text-slate-500">Pelanggan</th>
-                        <th className="pb-3 text-[11px] font-semibold text-slate-500">Waktu</th>
-                        <th className="pb-3 text-[11px] font-semibold text-slate-500">Total</th>
-                        <th className="pb-3 text-[11px] font-semibold text-slate-500 text-right">Metode</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-50">
-                      {recentTransactions.map((tx, idx) => (
-                        <tr key={idx} className="hover:bg-slate-50/50">
-                          <td className="py-3 text-[12px] font-semibold text-slate-600">{tx.id}</td>
-                          <td className="py-3 text-[12px] font-medium text-slate-700">{tx.customer}</td>
-                          <td className="py-3 text-[12px] text-slate-500">
-                            {tx.date}, {tx.time}
-                          </td>
-                          <td className="py-3 text-[12px] font-bold text-slate-800">
-                            Rp {tx.amount?.toLocaleString('id-ID')}
-                          </td>
-                          <td className="py-3 text-right">
-                            <span className={`inline-flex px-2 py-0.5 text-[10px] font-bold rounded ${getMethodColor(tx.method)}`}>
-                              {tx.method?.toUpperCase()}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="bg-violet-50 border border-violet-100 rounded-xl p-4 flex-1 mb-4 relative z-10 flex gap-3">
+                  <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-violet-600 flex-shrink-0 shadow-sm border border-violet-100">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-[12px] text-slate-700 font-medium leading-relaxed">
+                      Penjualan hari ini meningkat 9,7% dibanding kemarin. Produk Es Kopi Susu menjadi produk terlaris dengan 82 terjual.
+                    </p>
+                  </div>
                 </div>
-                <div className="mt-2 pt-4 border-t border-slate-100 flex justify-center">
-                  <Link href="/transactions" className="flex items-center gap-1.5 text-[12px] font-medium text-violet-600 hover:text-violet-800">
-                    <FileText className="w-3.5 h-3.5" /> Lihat Semua Transaksi
-                  </Link>
-                </div>
-              </div>
-
-              {/* Target & Insight */}
-              <div className="flex flex-col gap-6">
                 
-                {/* Target Penjualan */}
-                <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-                  <div className="flex justify-between items-center mb-6">
-                    <h3 className="font-bold text-slate-800 text-[14px]">Target Penjualan</h3>
-                    <div className="relative">
-                      <select className="pl-3 pr-8 py-1.5 bg-white border border-slate-200 rounded-lg text-[11px] font-medium text-slate-600 appearance-none focus:outline-none">
-                        <option>Bulan Ini</option>
-                      </select>
-                      <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-between items-end mb-3">
-                    <div>
-                      <p className="text-[11px] text-slate-500 mb-0.5">Target</p>
-                      <p className="text-[14px] font-bold text-slate-800">Rp 550.000.000</p>
-                    </div>
-                    <div>
-                      <p className="text-[11px] text-slate-500 mb-0.5 text-right">Tercapai</p>
-                      <p className="text-[14px] font-bold text-slate-800">Rp 238.750.000</p>
-                    </div>
-                    <div className="text-2xl font-bold text-violet-700 leading-none">
-                      43,4%
-                    </div>
-                  </div>
-                  
-                  <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden mb-3">
-                    <div className="bg-violet-600 h-full rounded-full" style={{ width: '43.4%' }}></div>
-                  </div>
-                  
-                  <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
-                    <span className="w-3 h-3 rounded-full border border-slate-300 flex items-center justify-center text-[8px]">🕒</span>
-                    Sisa 12 hari lagi
-                  </div>
-                </div>
-
-                {/* Insight AI */}
-                <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex-1 relative overflow-hidden flex flex-col">
-                  {/* Background decoration */}
-                  <div className="absolute right-0 top-0 w-32 h-32 bg-violet-100 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
-                  
-                  <div className="flex justify-between items-center mb-4 relative z-10">
-                    <h3 className="font-bold text-slate-800 text-[14px]">Insight AI</h3>
-                    <span className="bg-violet-100 text-violet-700 text-[10px] font-bold px-2 py-0.5 rounded border border-violet-200">New</span>
-                  </div>
-                  
-                  <div className="bg-violet-50 border border-violet-100 rounded-xl p-4 flex-1 mb-4 relative z-10 flex gap-3">
-                    <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-violet-600 flex-shrink-0 shadow-sm border border-violet-100">
-                      <Sparkles className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <p className="text-[12px] text-slate-700 font-medium leading-relaxed">
-                        Penjualan hari ini meningkat 9,7% dibanding kemarin. Produk Es Kopi Susu menjadi produk terlaris dengan 82 terjual.
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <Link href="/chatbot" className="w-full py-2.5 bg-violet-600 hover:bg-violet-700 text-white font-bold text-[13px] rounded-xl flex items-center justify-between px-4 transition-colors shadow-sm relative z-10 mt-auto">
-                    Lihat Insight
-                    <ChevronDown className="w-4 h-4 -rotate-90 opacity-70" />
-                  </Link>
-                </div>
-
+                <Link href="/chatbot" className="w-full py-2.5 bg-violet-600 hover:bg-violet-700 text-white font-bold text-[13px] rounded-xl flex items-center justify-between px-4 transition-colors shadow-sm relative z-10 mt-auto">
+                  Lihat Insight
+                  <ChevronDown className="w-4 h-4 -rotate-90 opacity-70" />
+                </Link>
               </div>
+
+            </div>
             </div>
 
           </div>
