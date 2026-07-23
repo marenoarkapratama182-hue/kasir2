@@ -238,11 +238,6 @@ export default function POSPage() {
             <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[9px] text-slate-400 bg-slate-200 px-1 py-0.5 rounded">F2</span>
           </div>
 
-          {/* Bell */}
-          <button className="relative w-8 h-8 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center hover:bg-slate-100 transition-colors">
-            <Bell className="w-4 h-4 text-slate-500" />
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-violet-500 rounded-full text-white text-[8px] font-bold flex items-center justify-center">3</span>
-          </button>
 
           {/* User */}
           <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 cursor-pointer hover:bg-slate-100 transition-colors">
