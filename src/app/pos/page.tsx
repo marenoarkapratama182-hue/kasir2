@@ -6,7 +6,7 @@ import {
   CheckCircle2, Loader2, User, Bell, ChevronDown, LayoutDashboard,
   ShoppingCart, FileText, Package, Warehouse, Users, BarChart2,
   Bot, Settings, LogOut, Scan, X, Tag, Printer, Bookmark,
-  Coffee, Fish, Soup, IceCream, Leaf, ShoppingBag, Sandwich, Wallet, Home
+  Coffee, Fish, Soup, IceCream, Leaf, ShoppingBag, Sandwich, Wallet, Home, ArrowLeft
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import Link from "next/link";
@@ -217,7 +217,10 @@ export default function POSPage() {
 
         {/* Top Header */}
         <header className="bg-white border-b border-slate-200 px-5 py-3 flex items-center gap-4 flex-shrink-0">
-          <div className="flex-1">
+          <Link href="/" className="p-2 -ml-2 rounded-lg text-slate-500 hover:text-violet-600 hover:bg-violet-50 transition-colors" title="Kembali ke Beranda">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <div className="flex-1 border-l pl-4 border-slate-200">
             <h1 className="text-lg font-bold text-slate-800">Kasir</h1>
             <p className="text-slate-400 text-xs">Proses penjualan dengan cepat dan mudah</p>
           </div>
