@@ -21,7 +21,7 @@ const categoryEmoji: Record<string, string> = {
 const getEmoji = (category: string) => categoryEmoji[category] || categoryEmoji["default"];
 
 const navItems = [
-  { label: "Beranda", icon: Home, href: "/" },
+  { label: "Kembali ke Landing Page", icon: Home, href: "/" },
   { label: "Dashboard", icon: LayoutDashboard, href: "/admin" },
   { label: "Kasir", icon: ShoppingCart, href: "/pos", active: true },
   { label: "Transaksi", icon: FileText, href: "/transactions" },
