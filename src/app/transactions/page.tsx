@@ -129,7 +129,7 @@ export default function TransactionsPage() {
         const supabase = createClient();
         const { data } = await supabase
           .from("sales")
-          .select("id, invoice_no, total_amount, payment_method, created_at, customers(name, phone)")
+          .select("id, invoice_no, total_amount, payment_method, created_at, status, customers(name, phone)")
           .order("created_at", { ascending: false });
         if (data && data.length > 0) {
           const mapped = data.map((item: any) => ({
@@ -143,7 +143,7 @@ export default function TransactionsPage() {
             outlet: "Toko Utama",
             metode: item.payment_method || "Tunai",
             total: item.total_amount,
-            status: "Berhasil",
+            status: item.status || "Berhasil",
           }));
           setTransactions(mapped);
         }
@@ -189,6 +189,37 @@ export default function TransactionsPage() {
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/login");
+  };
+
+
+  const handleRefund = async () => {
+    if (!selectedTxData || selectedTxData.status === "Refund") return;
+    if (!confirm("Apakah Anda yakin ingin memproses refund untuk transaksi ini?")) return;
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from("sales")
+        .update({ status: "Refund" })
+        .eq("id", selectedTxData.dbId);
+
+      if (!error) {
+        alert("Transaksi berhasil di-refund!");
+        setTransactions(prev => prev.map(t => t.id === selectedTxData.id ? { ...t, status: "Refund" } : t));
+        setSelectedTxData({ ...selectedTxData, status: "Refund" });
+      } else {
+        alert("Gagal melakukan refund.");
+        console.error(error);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleReprint = () => {
+    if (!selectedTxData) return;
+    alert("Mencetak struk untuk transaksi: " + selectedTxData.id);
+    window.print();
   };
 
   const toggleCheck = (id: string) =>
@@ -601,11 +632,11 @@ export default function TransactionsPage() {
                     Lihat Detail
                   </button>
                   <div className="grid grid-cols-2 gap-2">
-                    <button className="flex items-center justify-center gap-1.5 bg-white border border-slate-200 text-slate-700 font-semibold py-2.5 rounded-xl text-xs hover:bg-slate-50 transition-colors">
+                    <button onClick={handleReprint} className="flex items-center justify-center gap-1.5 bg-white border border-slate-200 text-slate-700 font-semibold py-2.5 rounded-xl text-xs hover:bg-slate-50 transition-colors">
                       <Printer className="w-3.5 h-3.5" /> Cetak Ulang Struk
                     </button>
-                    <button className="flex items-center justify-center gap-1.5 bg-red-50 border border-red-200 text-red-600 font-semibold py-2.5 rounded-xl text-xs hover:bg-red-100 transition-colors">
-                      <RotateCcw className="w-3.5 h-3.5" /> Refund
+                    <button onClick={handleRefund} disabled={selectedTxData.status === "Refund"} className="flex items-center justify-center gap-1.5 bg-red-50 border border-red-200 text-red-600 font-semibold py-2.5 rounded-xl text-xs hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                      <RotateCcw className="w-3.5 h-3.5" /> {selectedTxData.status === "Refund" ? "Direfund" : "Refund"}
                     </button>
                   </div>
                 </div>
