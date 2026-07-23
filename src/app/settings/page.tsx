@@ -59,6 +59,32 @@ export default function SettingsPage() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+  const [prefs, setPrefs] = useState({
+    active_outlet: 'Pusat',
+    timezone: '(GMT+07:00) Jakarta',
+    currency: 'IDR - Rupiah',
+    language: 'Bahasa Indonesia',
+    open_time: '08:00',
+    close_time: '21:00',
+    tax_enabled: true,
+    tax_rate: '11',
+    invoice_format: 'INV-{YYYYMMDD}-{0001}',
+    rounding: 'Pembulatan Normal',
+    qr_invoice: true,
+    payment_cash: true,
+    payment_qris: true,
+    payment_transfer: true,
+    payment_debit: true,
+    payment_ewallet: true,
+    notif_low_stock: true,
+    notif_return: true,
+    notif_shift: true,
+    notif_report: true,
+    ai_name: 'Kasir Pintar Bot',
+    ai_style: 'Ramah & Profesional',
+    ai_confirm: true,
+    ai_access: 'Hanya data ringkasan'
+  });
   
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -84,6 +110,9 @@ export default function SettingsPage() {
             setBusinessName(profile.business_name || "");
             setPhone(profile.phone || "");
             setAddress(profile.address || "");
+            if (profile.preferences) {
+              setPrefs(prev => ({ ...prev, ...profile.preferences }));
+            }
           }
         }
       } catch (err) {
@@ -115,7 +144,8 @@ export default function SettingsPage() {
         .update({
           business_name: businessName,
           phone: phone,
-          address: address
+          address: address,
+          preferences: prefs
         })
         .eq('id', userId);
         
@@ -298,7 +328,7 @@ export default function SettingsPage() {
                 <div className="grid grid-cols-[130px_1fr] gap-y-4 items-center">
                   <label className="text-[13px] text-slate-600 font-medium">Outlet Aktif</label>
                   <div className="relative">
-                    <select className="w-full pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 appearance-none bg-white focus:outline-none focus:border-violet-500">
+                    <select value={prefs.active_outlet} onChange={(e) => setPrefs(prev => ({ ...prev, active_outlet: e.target.value }))} className="w-full pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 appearance-none bg-white focus:outline-none focus:border-violet-500">
                       <option>{businessName || 'Toko'} - Pusat</option>
                     </select>
                     <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -306,7 +336,7 @@ export default function SettingsPage() {
 
                   <label className="text-[13px] text-slate-600 font-medium">Zona Waktu</label>
                   <div className="relative">
-                    <select className="w-full pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 appearance-none bg-white focus:outline-none focus:border-violet-500">
+                    <select value={prefs.timezone} onChange={(e) => setPrefs(prev => ({ ...prev, timezone: e.target.value }))} className="w-full pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 appearance-none bg-white focus:outline-none focus:border-violet-500">
                       <option>(GMT+07:00) Jakarta</option>
                     </select>
                     <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -314,7 +344,7 @@ export default function SettingsPage() {
 
                   <label className="text-[13px] text-slate-600 font-medium">Mata Uang</label>
                   <div className="relative">
-                    <select className="w-full pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 appearance-none bg-white focus:outline-none focus:border-violet-500">
+                    <select value={prefs.currency} onChange={(e) => setPrefs(prev => ({ ...prev, currency: e.target.value }))} className="w-full pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 appearance-none bg-white focus:outline-none focus:border-violet-500">
                       <option>IDR - Rupiah</option>
                     </select>
                     <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -322,7 +352,7 @@ export default function SettingsPage() {
 
                   <label className="text-[13px] text-slate-600 font-medium">Bahasa</label>
                   <div className="relative">
-                    <select className="w-full pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 appearance-none bg-white focus:outline-none focus:border-violet-500">
+                    <select value={prefs.language} onChange={(e) => setPrefs(prev => ({ ...prev, language: e.target.value }))} className="w-full pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 appearance-none bg-white focus:outline-none focus:border-violet-500">
                       <option>Bahasa Indonesia</option>
                     </select>
                     <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -331,12 +361,12 @@ export default function SettingsPage() {
                   <label className="text-[13px] text-slate-600 font-medium">Jam Operasional</label>
                   <div className="flex items-center gap-2">
                     <div className="relative flex-1">
-                      <input type="text" defaultValue="08:00" className="w-full pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:border-violet-500 text-center" />
+                      <input type="text" value={prefs.open_time} onChange={(e) => setPrefs(prev => ({ ...prev, open_time: e.target.value }))} className="w-full pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:border-violet-500 text-center" />
                       <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400">🕒</span>
                     </div>
                     <span className="text-slate-400">-</span>
                     <div className="relative flex-1">
-                      <input type="text" defaultValue="21:00" className="w-full pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:border-violet-500 text-center" />
+                      <input type="text" value={prefs.close_time} onChange={(e) => setPrefs(prev => ({ ...prev, close_time: e.target.value }))} className="w-full pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:border-violet-500 text-center" />
                       <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400">🕒</span>
                     </div>
                   </div>
@@ -357,24 +387,24 @@ export default function SettingsPage() {
                     <label className="text-[13px] text-slate-600 font-medium">PPN</label>
                     <Info className="w-3.5 h-3.5 text-slate-400" />
                   </div>
-                  <Toggle defaultChecked={true} />
+                  <Toggle defaultChecked={prefs.tax_enabled} onChange={(val) => setPrefs(prev => ({ ...prev, tax_enabled: val }))} />
 
                   <label className="text-[13px] text-slate-600 font-medium">Tarif PPN (%)</label>
-                  <input type="text" defaultValue="11" className="w-20 px-3 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 text-right focus:outline-none focus:border-violet-500" />
+                  <input type="text" value={prefs.tax_rate} onChange={(e) => setPrefs(prev => ({ ...prev, tax_rate: e.target.value }))} className="w-20 px-3 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 text-right focus:outline-none focus:border-violet-500" />
 
                   <label className="text-[13px] text-slate-600 font-medium">Format Nomor Invoice</label>
-                  <input type="text" defaultValue="INV-{YYYYMMDD}-{0001}" className="w-[180px] px-3 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:border-violet-500" />
+                  <input type="text" value={prefs.invoice_format} onChange={(e) => setPrefs(prev => ({ ...prev, invoice_format: e.target.value }))} className="w-[180px] px-3 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:border-violet-500" />
 
                   <label className="text-[13px] text-slate-600 font-medium">Pembulatan</label>
                   <div className="relative w-[180px]">
-                    <select className="w-full pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 appearance-none bg-white focus:outline-none focus:border-violet-500">
+                    <select value={prefs.rounding} onChange={(e) => setPrefs(prev => ({ ...prev, rounding: e.target.value }))} className="w-full pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 appearance-none bg-white focus:outline-none focus:border-violet-500">
                       <option>Pembulatan Normal</option>
                     </select>
                     <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                   </div>
 
                   <label className="text-[13px] text-slate-600 font-medium">Tampilkan QR Invoice</label>
-                  <Toggle defaultChecked={true} />
+                  <Toggle defaultChecked={prefs.qr_invoice} onChange={(val) => setPrefs(prev => ({ ...prev, qr_invoice: val }))} />
                 </div>
               </div>
 
@@ -388,17 +418,17 @@ export default function SettingsPage() {
                 </div>
                 
                 {[
-                  { icon: "💵", label: "Tunai", checked: true },
-                  { icon: "📱", label: "QRIS", checked: true },
-                  { icon: "🏦", label: "Transfer", checked: true },
-                  { icon: "💳", label: "Debit/Kredit", checked: true },
-                  { icon: "👛", label: "E-Wallet", checked: true },
+                  { icon: "💵", label: "Tunai", checked: prefs.payment_cash, key: "payment_cash" },
+                  { icon: "📱", label: "QRIS", checked: prefs.payment_qris, key: "payment_qris" },
+                  { icon: "🏦", label: "Transfer", checked: prefs.payment_transfer, key: "payment_transfer" },
+                  { icon: "💳", label: "Debit/Kredit", checked: prefs.payment_debit, key: "payment_debit" },
+                  { icon: "👛", label: "E-Wallet", checked: prefs.payment_ewallet, key: "payment_ewallet" },
                 ].map((m, i) => (
                   <div key={i} className="flex items-center justify-between py-2 border-b last:border-0 border-slate-100">
                     <div className="flex items-center gap-3 text-[13px] text-slate-700 font-medium">
                       <span className="opacity-80">{m.icon}</span> {m.label}
                     </div>
-                    <Toggle defaultChecked={m.checked} />
+                    <Toggle defaultChecked={m.checked} onChange={(val) => setPrefs(prev => ({ ...prev, [m.key]: val }))} />
                   </div>
                 ))}
               </div>
@@ -457,17 +487,17 @@ export default function SettingsPage() {
                 </div>
                 
                 {[
-                  { title: "Stok Menipis", desc: "Dapatkan notifikasi saat stok hampir habis", checked: true },
-                  { title: "Retur", desc: "Dapatkan notifikasi retur dari pelanggan", checked: true },
-                  { title: "Shift Kasir", desc: "Notifikasi pergantian shift kasir", checked: true },
-                  { title: "Laporan Harian", desc: "Kirim ringkasan laporan setiap hari", checked: true },
+                  { title: "Stok Menipis", desc: "Dapatkan notifikasi saat stok hampir habis", checked: prefs.notif_low_stock, key: "notif_low_stock" },
+                  { title: "Retur", desc: "Dapatkan notifikasi retur dari pelanggan", checked: prefs.notif_return, key: "notif_return" },
+                  { title: "Shift Kasir", desc: "Notifikasi pergantian shift kasir", checked: prefs.notif_shift, key: "notif_shift" },
+                  { title: "Laporan Harian", desc: "Kirim ringkasan laporan setiap hari", checked: prefs.notif_report, key: "notif_report" },
                 ].map((n, i) => (
                   <div key={i} className="flex items-center justify-between border-b last:border-0 border-slate-50 pb-4 last:pb-0">
                     <div>
                       <p className="text-[13px] text-slate-700 font-semibold">{n.title}</p>
                       <p className="text-[10px] text-slate-400 mt-0.5">{n.desc}</p>
                     </div>
-                    <Toggle defaultChecked={n.checked} />
+                    <Toggle defaultChecked={n.checked} onChange={(val) => setPrefs(prev => ({ ...prev, [n.key]: val }))} />
                   </div>
                 ))}
               </div>
@@ -483,11 +513,11 @@ export default function SettingsPage() {
                 
                 <div className="grid grid-cols-[130px_1fr] gap-y-4 items-center max-w-lg">
                   <label className="text-[13px] text-slate-600 font-medium">Nama Asisten</label>
-                  <input type="text" defaultValue="Kasir Pintar Bot" className="w-full px-3 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:border-violet-500" />
+                  <input type="text" value={prefs.ai_name} onChange={(e) => setPrefs(prev => ({ ...prev, ai_name: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:border-violet-500" />
 
                   <label className="text-[13px] text-slate-600 font-medium">Gaya Bahasa</label>
                   <div className="relative">
-                    <select className="w-full pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 appearance-none bg-white focus:outline-none focus:border-violet-500">
+                    <select value={prefs.ai_style} onChange={(e) => setPrefs(prev => ({ ...prev, ai_style: e.target.value }))} className="w-full pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 appearance-none bg-white focus:outline-none focus:border-violet-500">
                       <option>Ramah & Profesional</option>
                     </select>
                     <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -497,11 +527,11 @@ export default function SettingsPage() {
                     <label className="text-[13px] text-slate-600 font-medium">Konfirmasi Aksi Penting</label>
                     <Info className="w-3.5 h-3.5 text-slate-400" />
                   </div>
-                  <div className="flex justify-end pr-2"><Toggle defaultChecked={true} /></div>
+                  <div className="flex justify-end pr-2"><Toggle defaultChecked={prefs.ai_confirm} onChange={(val) => setPrefs(prev => ({ ...prev, ai_confirm: val }))} /></div>
 
                   <label className="text-[13px] text-slate-600 font-medium">Batas Akses</label>
                   <div className="relative">
-                    <select className="w-full pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 appearance-none bg-white focus:outline-none focus:border-violet-500">
+                    <select value={prefs.ai_access} onChange={(e) => setPrefs(prev => ({ ...prev, ai_access: e.target.value }))} className="w-full pl-3 pr-8 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 appearance-none bg-white focus:outline-none focus:border-violet-500">
                       <option>Hanya data ringkasan</option>
                     </select>
                     <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
