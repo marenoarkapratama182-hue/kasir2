@@ -13,7 +13,6 @@ import { createClient } from "@/utils/supabase/client";
 import { ChatWidget } from "@/components/chat-widget";
 
 const navItems = [
-  { label: "Beranda", icon: Home, href: "/" },
   { label: "Dashboard", icon: LayoutDashboard, href: "/admin", active: true },
   { label: "Kasir", icon: ShoppingCart, href: "/pos" },
   { label: "Transaksi", icon: FileText, href: "/transactions" },

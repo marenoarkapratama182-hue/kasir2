@@ -13,7 +13,6 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 
 const navItems = [
-  { label: "Beranda", icon: Home, href: "/" },
   { label: "Dashboard", icon: LayoutDashboard, href: "/admin" },
   { label: "Kasir", icon: ShoppingCart, href: "/pos" },
   { label: "Transaksi", icon: FileText, href: "/transactions", active: true },
