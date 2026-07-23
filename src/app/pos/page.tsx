@@ -45,12 +45,31 @@ export default function POSPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [cashReceived, setCashReceived] = useState("");
+  const [prefs, setPrefs] = useState<any>(null);
   const router = useRouter();
 
   useEffect(() => {
     async function loadData() {
       try {
         const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase.from("profiles").select("preferences").eq("id", user.id).single();
+          if (profile?.preferences) {
+            setPrefs(profile.preferences);
+            const activeMethods = [
+              { id: "Tunai", prefKey: "payment_cash" },
+              { id: "QRIS", prefKey: "payment_qris" },
+              { id: "Transfer", prefKey: "payment_transfer" },
+              { id: "Debit", prefKey: "payment_debit" },
+              { id: "E-Wallet", prefKey: "payment_ewallet" }
+            ].filter(m => profile.preferences[m.prefKey]);
+            if (activeMethods.length > 0) {
+              setPaymentMethod(activeMethods[0].id);
+            }
+          }
+        }
+        
         const { data: prodData } = await supabase.from("products").select("*");
         if (prodData) setProducts(prodData);
 
@@ -91,7 +110,8 @@ export default function POSPage() {
 
   const subtotal = cart.reduce((s, i) => s + i.product.price * i.qty, 0);
   const discount = Math.floor(subtotal * 0.05);
-  const tax = Math.floor((subtotal - discount) * 0.10);
+  const taxRate = prefs?.tax_enabled !== false ? parseFloat(prefs?.tax_rate || "10") / 100 : 0;
+  const tax = Math.floor((subtotal - discount) * taxRate);
   const total = subtotal - discount + tax;
   const cashNum = parseInt(cashReceived.replace(/\D/g, "")) || 0;
   const change = cashNum - total;
@@ -386,10 +406,12 @@ export default function POSPage() {
                   <span className="flex items-center gap-1"><Tag className="w-3 h-3" /> Diskon</span>
                   <span className="font-medium text-slate-700">Rp {discount.toLocaleString("id-ID")}</span>
                 </div>
-                <div className="flex justify-between text-xs text-slate-500">
-                  <span>Pajak (10%)</span>
-                  <span className="font-medium text-slate-700">Rp {tax.toLocaleString("id-ID")}</span>
-                </div>
+                {prefs?.tax_enabled !== false && (
+                  <div className="flex justify-between text-xs text-slate-500">
+                    <span>Pajak ({prefs?.tax_rate || "10"}%)</span>
+                    <span className="font-medium text-slate-700">Rp {tax.toLocaleString("id-ID")}</span>
+                  </div>
+                )}
                 <div className="h-px bg-slate-200 my-1" />
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-bold text-slate-800">Total</span>
@@ -408,11 +430,12 @@ export default function POSPage() {
                 <p className="text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">Metode Pembayaran</p>
                 <div className="grid grid-cols-4 gap-1.5 mb-3">
                   {[
-                    { id: "Tunai", icon: Banknote, label: "Tunai" },
-                    { id: "QRIS", icon: QrCode, label: "QRIS" },
-                    { id: "Debit", icon: CreditCard, label: "Debit/Kredit" },
-                    { id: "E-Wallet", icon: Wallet, label: "E-Wallet" },
-                  ].map((m) => (
+                    { id: "Tunai", icon: Banknote, label: "Tunai", prefKey: "payment_cash" },
+                    { id: "QRIS", icon: QrCode, label: "QRIS", prefKey: "payment_qris" },
+                    { id: "Transfer", icon: CreditCard, label: "Transfer", prefKey: "payment_transfer" },
+                    { id: "Debit", icon: CreditCard, label: "Debit/Kredit", prefKey: "payment_debit" },
+                    { id: "E-Wallet", icon: Wallet, label: "E-Wallet", prefKey: "payment_ewallet" },
+                  ].filter(m => !prefs || prefs[m.prefKey]).map((m) => (
                     <button key={m.id} onClick={() => setPaymentMethod(m.id)}
                       className={`flex flex-col items-center gap-1 py-2 px-1 rounded-xl border text-[9px] font-semibold transition-all ${
                         paymentMethod === m.id
