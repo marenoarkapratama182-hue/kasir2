@@ -29,6 +29,9 @@ export default function CustomersPage() {
   const [filterStatus, setFilterStatus] = useState("Semua Status");
   const [filterTier, setFilterTier] = useState("Semua Tier");
   
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
+  
   // Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newName, setNewName] = useState("");
@@ -160,6 +163,9 @@ export default function CustomersPage() {
     const matchTier = filterTier === "Semua Tier" || c.tier === filterTier;
     return matchSearch && matchStatus && matchTier;
   });
+
+  const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+  const paginatedCustomers = filteredCustomers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const getTierColor = (tier: string) => {
     switch (tier) {
@@ -322,7 +328,7 @@ export default function CustomersPage() {
                       type="text" 
                       placeholder="Cari nama, email, atau no. telepon..."
                       value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
                       className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-[13px] focus:outline-none focus:border-violet-500 shadow-sm"
                     />
                   </div>
@@ -330,7 +336,7 @@ export default function CustomersPage() {
                   <div className="relative">
                     <select 
                       value={filterStatus}
-                      onChange={(e) => setFilterStatus(e.target.value)}
+                      onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
                       className="pl-3 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-[13px] appearance-none focus:outline-none focus:border-violet-500 shadow-sm"
                     >
                       <option value="Semua Status">Semua Status</option>
@@ -343,7 +349,7 @@ export default function CustomersPage() {
                   <div className="relative">
                     <select 
                       value={filterTier}
-                      onChange={(e) => setFilterTier(e.target.value)}
+                      onChange={(e) => { setFilterTier(e.target.value); setCurrentPage(1); }}
                       className="pl-3 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-[13px] appearance-none focus:outline-none focus:border-violet-500 shadow-sm"
                     >
                       <option value="Semua Tier">Semua Tier</option>
@@ -357,7 +363,7 @@ export default function CustomersPage() {
                   </div>
 
                   <button 
-                    onClick={() => { setSearchQuery(""); setFilterStatus("Semua Status"); setFilterTier("Semua Tier"); }}
+                    onClick={() => { setSearchQuery(""); setFilterStatus("Semua Status"); setFilterTier("Semua Tier"); setCurrentPage(1); }}
                     className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 text-[13px] rounded-xl hover:bg-slate-50 transition-colors shadow-sm ml-auto font-medium"
                   >
                     <RotateCcw className="w-3.5 h-3.5" /> Reset Filter
@@ -388,7 +394,7 @@ export default function CustomersPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        {filteredCustomers.map((c, i) => (
+                        {paginatedCustomers.map((c, i) => (
                           <tr key={i} className={`hover:bg-slate-50/50 transition-colors ${i === 0 ? 'bg-violet-50/30' : ''}`}>
                             <td className="px-5 py-4 text-[13px] font-semibold text-slate-700">{c.id_display}</td>
                             <td className="px-5 py-4 text-[13px] font-bold text-slate-800">{c.name}</td>
@@ -431,17 +437,37 @@ export default function CustomersPage() {
                   
                   {/* Pagination footer */}
                   <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
-                    <p className="text-[12px] text-slate-500 font-medium">Menampilkan 1 - 8 dari 1.248 pelanggan</p>
+                    <p className="text-[12px] text-slate-500 font-medium">Menampilkan {filteredCustomers.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, filteredCustomers.length)} dari {filteredCustomers.length} pelanggan</p>
                     <div className="flex items-center gap-1">
-                      <button className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 bg-white shadow-sm hover:bg-slate-50">
+                      <button 
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                        className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 bg-white shadow-sm hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed">
                         {'<'}
                       </button>
-                      <button className="w-8 h-8 rounded-lg bg-violet-100 text-violet-700 font-bold text-[13px] flex items-center justify-center">1</button>
-                      <button className="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-600 font-medium text-[13px] flex items-center justify-center hover:bg-slate-50">2</button>
-                      <button className="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-600 font-medium text-[13px] flex items-center justify-center hover:bg-slate-50">3</button>
-                      <span className="w-8 h-8 flex items-center justify-center text-slate-400 text-xs">...</span>
-                      <button className="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-600 font-medium text-[13px] flex items-center justify-center hover:bg-slate-50">156</button>
-                      <button className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 bg-white shadow-sm hover:bg-slate-50">
+                      
+                      {Array.from({ length: totalPages }).map((_, i) => {
+                        if (totalPages > 7) {
+                          if (i !== 0 && i !== totalPages - 1 && Math.abs(i + 1 - currentPage) > 1) {
+                            if (i === 1 || i === totalPages - 2) return <span key={i} className="w-8 h-8 flex items-center justify-center text-slate-400 text-xs">...</span>;
+                            return null;
+                          }
+                        }
+                        return (
+                          <button 
+                            key={i}
+                            onClick={() => setCurrentPage(i + 1)}
+                            className={`w-8 h-8 rounded-lg font-medium text-[13px] flex items-center justify-center ${currentPage === i + 1 ? 'bg-violet-100 text-violet-700 font-bold' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                          >
+                            {i + 1}
+                          </button>
+                        );
+                      })}
+
+                      <button 
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages || totalPages === 0}
+                        className="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 bg-white shadow-sm hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed">
                         {'>'}
                       </button>
                     </div>
