@@ -27,7 +27,6 @@ export default function CustomersPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("Semua Status");
-  const [filterTier, setFilterTier] = useState("Semua Tier");
   
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
@@ -64,17 +63,11 @@ export default function CustomersPage() {
           
           const enhanced = customersData.map((c, i) => {
             const total = salesMap[c.id] || 0;
-            let tier = 'Member';
-            if (total >= 1000000) tier = 'Platinum';
-            else if (total >= 500000) tier = 'Gold';
-            else if (total >= 200000) tier = 'Silver';
-            else if (total >= 50000) tier = 'Bronze';
             
             return {
               ...c,
               id_display: `CUST-${(i + 1).toString().padStart(4, '0')}`,
               email: `${c.name.split(' ')[0].toLowerCase()}@email.com`,
-              tier: tier,
               total_transactions: total,
               point: Math.floor(total / 50000), // 1 point per 50k
               status: c.status || 'Aktif',
@@ -160,22 +153,11 @@ export default function CustomersPage() {
   const filteredCustomers = customers.filter(c => {
     const matchSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) || (c.phone && c.phone.includes(searchQuery));
     const matchStatus = filterStatus === "Semua Status" || c.status === filterStatus;
-    const matchTier = filterTier === "Semua Tier" || c.tier === filterTier;
-    return matchSearch && matchStatus && matchTier;
+    return matchSearch && matchStatus;
   });
 
   const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
   const paginatedCustomers = filteredCustomers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
-  const getTierColor = (tier: string) => {
-    switch (tier) {
-      case 'Platinum': return 'bg-purple-100 text-purple-700 border-purple-200';
-      case 'Gold': return 'bg-amber-100 text-amber-700 border-amber-200';
-      case 'Silver': return 'bg-slate-100 text-slate-700 border-slate-200';
-      case 'Bronze': return 'bg-orange-100 text-orange-700 border-orange-200';
-      default: return 'bg-blue-100 text-blue-700 border-blue-200';
-    }
-  };
 
   return (
     <div className="flex h-screen w-full font-sans overflow-hidden text-slate-800" style={{ background: "#fcfcfd" }}>
@@ -346,24 +328,10 @@ export default function CustomersPage() {
                     <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                   </div>
 
-                  <div className="relative">
-                    <select 
-                      value={filterTier}
-                      onChange={(e) => { setFilterTier(e.target.value); setCurrentPage(1); }}
-                      className="pl-3 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-[13px] appearance-none focus:outline-none focus:border-violet-500 shadow-sm"
-                    >
-                      <option value="Semua Tier">Semua Tier</option>
-                      <option value="Platinum">Platinum</option>
-                      <option value="Gold">Gold</option>
-                      <option value="Silver">Silver</option>
-                      <option value="Bronze">Bronze</option>
-                      <option value="Member">Member</option>
-                    </select>
-                    <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                  </div>
+
 
                   <button 
-                    onClick={() => { setSearchQuery(""); setFilterStatus("Semua Status"); setFilterTier("Semua Tier"); setCurrentPage(1); }}
+                    onClick={() => { setSearchQuery(""); setFilterStatus("Semua Status"); setCurrentPage(1); }}
                     className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 text-[13px] rounded-xl hover:bg-slate-50 transition-colors shadow-sm ml-auto font-medium"
                   >
                     <RotateCcw className="w-3.5 h-3.5" /> Reset Filter
@@ -386,7 +354,6 @@ export default function CustomersPage() {
                           <th className="px-5 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">ID Pelanggan</th>
                           <th className="px-5 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Nama</th>
                           <th className="px-5 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Kontak</th>
-                          <th className="px-5 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Tier</th>
                           <th className="px-5 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Transaksi</th>
                           <th className="px-5 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Poin</th>
                           <th className="px-5 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Status</th>
@@ -403,11 +370,6 @@ export default function CustomersPage() {
                                 <span className="text-[12px] font-medium text-slate-700">{c.phone || "0812-3456-7890"}</span>
                                 <span className="text-[11px] text-slate-400">{c.email}</span>
                               </div>
-                            </td>
-                            <td className="px-5 py-4">
-                              <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border ${getTierColor(c.tier)}`}>
-                                {c.tier}
-                              </span>
                             </td>
                             <td className="px-5 py-4 text-[13px] font-semibold text-slate-700">Rp {(c.total_transactions || 0).toLocaleString('id-ID')}</td>
                             <td className="px-5 py-4 text-[13px] font-semibold text-slate-700">{(c.point || 0).toLocaleString('id-ID')}</td>
