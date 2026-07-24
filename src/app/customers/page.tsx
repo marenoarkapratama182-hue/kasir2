@@ -39,24 +39,42 @@ export default function CustomersPage() {
     async function loadCustomers() {
       try {
         const supabase = createClient();
-        const { data, error } = await supabase
+        const { data: customersData, error: customersError } = await supabase
           .from('customers')
           .select('*')
           .order('name');
           
-        if (data) {
-          // Enhance with dummy data for UI completion if real data is simple
-          const enhanced = data.map((c, i) => {
-            const tiers = ['Platinum', 'Gold', 'Silver', 'Bronze', 'Member'];
-            const tier = i === 0 ? 'Platinum' : i === 1 ? 'Gold' : i < 4 ? 'Silver' : i < 6 ? 'Bronze' : 'Member';
+        const { data: salesData } = await supabase
+          .from('sales')
+          .select('customer_id, total_amount');
+          
+        if (customersData) {
+          const salesMap: Record<number, number> = {};
+          if (salesData) {
+            salesData.forEach((sale: any) => {
+              if (sale.customer_id) {
+                if (!salesMap[sale.customer_id]) salesMap[sale.customer_id] = 0;
+                salesMap[sale.customer_id] += sale.total_amount || 0;
+              }
+            });
+          }
+          
+          const enhanced = customersData.map((c, i) => {
+            const total = salesMap[c.id] || 0;
+            let tier = 'Member';
+            if (total >= 1000000) tier = 'Platinum';
+            else if (total >= 500000) tier = 'Gold';
+            else if (total >= 200000) tier = 'Silver';
+            else if (total >= 50000) tier = 'Bronze';
             
             return {
               ...c,
               id_display: `CUST-${(i + 1).toString().padStart(4, '0')}`,
               email: `${c.name.split(' ')[0].toLowerCase()}@email.com`,
               tier: tier,
-              total_transactions: Math.floor(Math.random() * 20000000),
-              status: i === 7 ? 'Nonaktif' : 'Aktif',
+              total_transactions: total,
+              point: Math.floor(total / 50000), // 1 point per 50k
+              status: c.status || 'Aktif',
             }
           });
           setCustomers(enhanced);
@@ -109,6 +127,25 @@ export default function CustomersPage() {
       const { error } = await supabase.from('customers').delete().eq('id', id);
       if (!error) {
         setCustomers(prev => prev.filter(c => c.id !== id));
+      } else {
+        console.error(error);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleToggleStatus = async (id: number, currentStatus: string) => {
+    const newStatus = currentStatus === 'Aktif' ? 'Nonaktif' : 'Aktif';
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('customers')
+        .update({ status: newStatus })
+        .eq('id', id);
+        
+      if (!error) {
+        setCustomers(prev => prev.map(c => c.id === id ? { ...c, status: newStatus } : c));
       } else {
         console.error(error);
       }
@@ -369,9 +406,13 @@ export default function CustomersPage() {
                             <td className="px-5 py-4 text-[13px] font-semibold text-slate-700">Rp {(c.total_transactions || 0).toLocaleString('id-ID')}</td>
                             <td className="px-5 py-4 text-[13px] font-semibold text-slate-700">{(c.point || 0).toLocaleString('id-ID')}</td>
                             <td className="px-5 py-4">
-                              <span className={`text-[12px] font-bold ${c.status === 'Aktif' ? 'text-emerald-600' : 'text-red-500'}`}>
+                              <button
+                                onClick={() => handleToggleStatus(c.id, c.status)}
+                                className={`px-2 py-1 rounded-lg text-[12px] font-bold transition-colors ${c.status === 'Aktif' ? 'text-emerald-600 bg-emerald-50 hover:bg-emerald-100' : 'text-red-500 bg-red-50 hover:bg-red-100'}`}
+                                title="Klik untuk mengubah status"
+                              >
                                 {c.status}
-                              </span>
+                              </button>
                             </td>
                             <td className="px-5 py-4 text-center">
                               <button 

@@ -216,7 +216,7 @@ export default function POSPage() {
 
         {/* Top Header */}
         <header className="bg-white border-b border-slate-200 px-5 py-3 flex items-center gap-4 flex-shrink-0">
-          <Link href="/admin" className="flex items-center gap-2 px-3 py-1.5 -ml-2 rounded-lg text-slate-600 hover:text-violet-700 hover:bg-violet-50 transition-colors border border-transparent hover:border-violet-100 font-medium text-sm shadow-sm" title="Kembali ke Dashboard">
+          <Link href="/pos" className="flex items-center gap-2 px-3 py-1.5 -ml-2 rounded-lg text-slate-600 hover:text-violet-700 hover:bg-violet-50 transition-colors border border-transparent hover:border-violet-100 font-medium text-sm shadow-sm" title="Kembali ke Kasir">
             <ArrowLeft className="w-4 h-4" />
             Kembali
           </Link>

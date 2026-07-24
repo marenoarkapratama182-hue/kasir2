@@ -303,6 +303,9 @@ export default function AdminDashboardPage() {
                   <div className="relative">
                     <select className="pl-3 pr-8 py-1.5 bg-white border border-slate-200 rounded-lg text-[11px] font-medium text-slate-600 appearance-none focus:outline-none">
                       <option>7 Hari Terakhir</option>
+                      <option>Hari Ini</option>
+                      <option>Kemarin</option>
+                      <option>Bulan Ini</option>
                     </select>
                     <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                   </div>
@@ -383,6 +386,9 @@ export default function AdminDashboardPage() {
                   <div className="relative">
                     <select className="pl-3 pr-8 py-1.5 bg-white border border-slate-200 rounded-lg text-[11px] font-medium text-slate-600 appearance-none focus:outline-none">
                       <option>Hari Ini</option>
+                      <option>Kemarin</option>
+                      <option>7 Hari Terakhir</option>
+                      <option>Bulan Ini</option>
                     </select>
                     <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                   </div>
@@ -440,6 +446,9 @@ export default function AdminDashboardPage() {
                   <div className="relative">
                     <select className="pl-3 pr-8 py-1.5 bg-white border border-slate-200 rounded-lg text-[11px] font-medium text-slate-600 appearance-none focus:outline-none">
                       <option>Hari Ini</option>
+                      <option>Kemarin</option>
+                      <option>7 Hari Terakhir</option>
+                      <option>Bulan Ini</option>
                     </select>
                     <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                   </div>
