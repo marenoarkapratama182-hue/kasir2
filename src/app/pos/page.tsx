@@ -561,7 +561,6 @@ export default function POSPage() {
             </div>
           </div>
         </div>
-        </div>
       )}
 
       {/* Quick Add Product Modal */}
