@@ -6,7 +6,8 @@ import { createClient } from "@/utils/supabase/client";
 import {
   Loader2, Lock, Mail, Eye, EyeOff,
   BarChart2, Package, ShieldCheck,
-  ArrowRight, Bot, ShoppingCart, Check, Crown, Zap, Star
+  ArrowRight, Bot, ShoppingCart, Check, Crown, Zap, Star,
+  X, Phone, MessageCircle, CreditCard, Wallet
 } from "lucide-react";
 import Link from "next/link";
 
@@ -17,6 +18,7 @@ export default function LoginPage() {
   const [remember, setRemember] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [subModal, setSubModal] = useState<null | 'premium' | 'enterprise'>(null);
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -54,6 +56,7 @@ export default function LoginPage() {
       features: ["1 Kasir", "100 Produk", "Laporan Dasar", "Support Email"],
       cta: "Mulai Gratis",
       popular: false,
+      action: () => router.push("/register"),
     },
     {
       name: "Premium",
@@ -66,6 +69,7 @@ export default function LoginPage() {
       features: ["5 Kasir", "Produk Tak Terbatas", "AI Assistant", "Laporan Real-time", "Multi Outlet", "Support Prioritas"],
       cta: "Coba 14 Hari",
       popular: true,
+      action: () => setSubModal('premium'),
     },
     {
       name: "Enterprise",
@@ -78,6 +82,7 @@ export default function LoginPage() {
       features: ["Kasir Tak Terbatas", "API Access", "White Label", "Dedicated Manager"],
       cta: "Hubungi Kami",
       popular: false,
+      action: () => setSubModal('enterprise'),
     },
   ];
 
@@ -171,7 +176,8 @@ export default function LoginPage() {
 
                 {/* CTA */}
                 <button
-                  className={`mt-4 w-full py-1.5 rounded-lg text-[11px] font-bold transition-all ${
+                  onClick={plan.action}
+                  className={`mt-4 w-full py-1.5 rounded-lg text-[11px] font-bold transition-all active:scale-95 cursor-pointer ${
                     plan.popular
                       ? "bg-gradient-to-r from-amber-400 to-yellow-500 text-[#1e1152] hover:brightness-110 shadow-md"
                       : "bg-white/10 text-white hover:bg-white/20 border border-white/15"
@@ -199,6 +205,136 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+
+      {/* ═══ SUBSCRIPTION MODALS ═══ */}
+      {subModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm" onClick={() => setSubModal(null)}>
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
+
+            {/* PREMIUM MODAL */}
+            {subModal === 'premium' && (
+              <>
+                <div className="relative bg-gradient-to-br from-amber-400 to-yellow-500 px-6 pt-8 pb-6 text-center">
+                  <button onClick={() => setSubModal(null)} className="absolute top-4 right-4 text-yellow-800/60 hover:text-yellow-900 transition-colors">
+                    <X className="w-5 h-5" />
+                  </button>
+                  <div className="w-14 h-14 bg-white/30 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+                    <Crown className="w-7 h-7 text-white" />
+                  </div>
+                  <h3 className="text-xl font-extrabold text-[#1e1152]">Aktifkan Premium</h3>
+                  <p className="text-yellow-800/80 text-sm mt-1">Coba gratis 14 hari, batalkan kapan saja</p>
+                  <div className="mt-3 inline-flex items-baseline gap-1 bg-white/30 rounded-xl px-4 py-1.5">
+                    <span className="text-2xl font-extrabold text-[#1e1152]">Rp 149.000</span>
+                    <span className="text-yellow-800/70 text-xs">/ bulan</span>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <p className="text-[13px] font-semibold text-slate-600 mb-3">Pilih metode pembayaran:</p>
+                  <div className="flex flex-col gap-2.5">
+                    <a
+                      href="https://wa.me/6281234567890?text=Halo%2C%20saya%20ingin%20berlangganan%20Kasir%20Pintar%20Premium"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-3 p-3.5 border-2 border-green-200 bg-green-50 rounded-2xl hover:bg-green-100 transition-colors group"
+                    >
+                      <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow">
+                        <MessageCircle className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-[13px] font-bold text-slate-800">WhatsApp</p>
+                        <p className="text-[11px] text-slate-500">Hubungi admin untuk aktivasi manual</p>
+                      </div>
+                      <ArrowRight className="w-4 h-4 text-green-500 group-hover:translate-x-1 transition-transform" />
+                    </a>
+                    <button
+                      className="flex items-center gap-3 p-3.5 border-2 border-violet-200 bg-violet-50 rounded-2xl hover:bg-violet-100 transition-colors group"
+                      onClick={() => { setSubModal(null); router.push("/register"); }}
+                    >
+                      <div className="w-10 h-10 bg-violet-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow">
+                        <CreditCard className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <p className="text-[13px] font-bold text-slate-800">Daftar & Bayar Online</p>
+                        <p className="text-[11px] text-slate-500">Transfer Bank / QRIS / Virtual Account</p>
+                      </div>
+                      <ArrowRight className="w-4 h-4 text-violet-500 group-hover:translate-x-1 transition-transform" />
+                    </button>
+                    <button
+                      className="flex items-center gap-3 p-3.5 border-2 border-slate-100 bg-slate-50 rounded-2xl hover:bg-slate-100 transition-colors group"
+                      onClick={() => { setSubModal(null); router.push("/register"); }}
+                    >
+                      <div className="w-10 h-10 bg-slate-400 rounded-xl flex items-center justify-center flex-shrink-0 shadow">
+                        <Wallet className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <p className="text-[13px] font-bold text-slate-800">Dompet Digital</p>
+                        <p className="text-[11px] text-slate-500">GoPay, OVO, Dana, ShopeePay</p>
+                      </div>
+                      <ArrowRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
+                    </button>
+                  </div>
+                  <p className="text-center text-[11px] text-slate-400 mt-4">
+                    🔒 Pembayaran aman & terenkripsi. Tanpa biaya tersembunyi.
+                  </p>
+                </div>
+              </>
+            )}
+
+            {/* ENTERPRISE MODAL */}
+            {subModal === 'enterprise' && (
+              <>
+                <div className="relative bg-gradient-to-br from-violet-600 to-purple-700 px-6 pt-8 pb-6 text-center">
+                  <button onClick={() => setSubModal(null)} className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors">
+                    <X className="w-5 h-5" />
+                  </button>
+                  <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+                    <Star className="w-7 h-7 text-white" />
+                  </div>
+                  <h3 className="text-xl font-extrabold text-white">Paket Enterprise</h3>
+                  <p className="text-purple-200 text-sm mt-1">Solusi khusus untuk bisnis besar & korporat</p>
+                </div>
+                <div className="p-6">
+                  <p className="text-[13px] text-slate-600 mb-4">Tim kami siap membantu menyesuaikan solusi terbaik untuk kebutuhan bisnis Anda.</p>
+                  <div className="flex flex-col gap-2.5">
+                    <a
+                      href="https://wa.me/6281234567890?text=Halo%2C%20saya%20tertarik%20dengan%20Paket%20Enterprise%20Kasir%20Pintar"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-3 p-3.5 border-2 border-green-200 bg-green-50 rounded-2xl hover:bg-green-100 transition-colors group"
+                    >
+                      <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow">
+                        <MessageCircle className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-[13px] font-bold text-slate-800">Chat WhatsApp</p>
+                        <p className="text-[11px] text-slate-500">Respon cepat, tersedia 08.00–22.00 WIB</p>
+                      </div>
+                      <ArrowRight className="w-4 h-4 text-green-500 group-hover:translate-x-1 transition-transform" />
+                    </a>
+                    <a
+                      href="tel:+6281234567890"
+                      className="flex items-center gap-3 p-3.5 border-2 border-blue-100 bg-blue-50 rounded-2xl hover:bg-blue-100 transition-colors group"
+                    >
+                      <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow">
+                        <Phone className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-[13px] font-bold text-slate-800">Telepon Langsung</p>
+                        <p className="text-[11px] text-slate-500">+62 812-3456-7890</p>
+                      </div>
+                      <ArrowRight className="w-4 h-4 text-blue-500 group-hover:translate-x-1 transition-transform" />
+                    </a>
+                  </div>
+                  <div className="mt-4 p-3 bg-violet-50 border border-violet-100 rounded-2xl">
+                    <p className="text-[12px] text-violet-700 font-semibold text-center">✨ Konsultasi gratis & demo produk tersedia</p>
+                  </div>
+                </div>
+              </>
+            )}
+
+          </div>
+        </div>
+      )}
 
       {/* ═══ RIGHT PANEL ═══ */}
       <div className="flex-1 flex items-center justify-center p-8" style={{ background: "#f3f3fa" }}>
