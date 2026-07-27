@@ -588,6 +588,32 @@ export default function TransactionsPage() {
                         <span className="text-[11px] text-slate-500">Metode Bayar</span>
                         <MetodeBadge metode={selectedTxData.metode} />
                       </div>
+                      <div className="flex justify-between items-center mt-2 pt-2 border-t border-slate-100">
+                        <span className="text-[11px] text-slate-500">Status Transaksi</span>
+                        <div className="relative">
+                          <select 
+                            value={selectedTxData.status} 
+                            onChange={(e) => handleChangeStatus(e.target.value)}
+                            className={`appearance-none text-[10px] font-bold px-2.5 py-1 pr-6 rounded-full focus:outline-none cursor-pointer border border-transparent hover:border-slate-300 transition-colors ${
+                              selectedTxData.status === 'Berhasil' ? 'bg-emerald-100 text-emerald-600' : 
+                              selectedTxData.status === 'Pending' ? 'bg-amber-100 text-amber-600' : 
+                              selectedTxData.status === 'Dibatalkan' ? 'bg-red-100 text-red-600' : 
+                              'bg-blue-100 text-blue-600'
+                            }`}
+                          >
+                            <option value="Berhasil" className="text-slate-800">Berhasil</option>
+                            <option value="Pending" className="text-slate-800">Pending</option>
+                            <option value="Dibatalkan" className="text-slate-800">Dibatalkan</option>
+                            <option value="Refund" className="text-slate-800">Refund</option>
+                          </select>
+                          <ChevronDown className={`w-3 h-3 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none ${
+                            selectedTxData.status === 'Berhasil' ? 'text-emerald-600' : 
+                            selectedTxData.status === 'Pending' ? 'text-amber-600' : 
+                            selectedTxData.status === 'Dibatalkan' ? 'text-red-600' : 
+                            'text-blue-600'
+                          }`} />
+                        </div>
+                      </div>
                     </div>
                   </div>
 
