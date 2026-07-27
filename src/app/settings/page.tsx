@@ -88,6 +88,7 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [activeModal, setActiveModal] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadProfile() {
@@ -471,7 +472,7 @@ export default function SettingsPage() {
                     ))}
                   </tbody>
                 </table>
-                <button className="text-violet-600 text-[12px] font-bold text-left hover:underline mt-1">
+                <button onClick={() => setActiveModal('role')} className="text-violet-600 text-[12px] font-bold text-left hover:underline mt-1">
                   + Tambah Peran
                 </button>
               </div>
@@ -555,7 +556,7 @@ export default function SettingsPage() {
                       <p className="text-[10px] text-slate-400 mt-0.5">Terakhir diubah 25 Apr 2025</p>
                     </div>
                   </div>
-                  <button className="px-4 py-1.5 bg-white border border-slate-200 text-violet-600 text-[12px] font-semibold rounded-lg hover:bg-slate-50 transition-colors">
+                  <button onClick={() => setActiveModal('password')} className="px-4 py-1.5 bg-white border border-slate-200 text-violet-600 text-[12px] font-semibold rounded-lg hover:bg-slate-50 transition-colors">
                     Ubah Password
                   </button>
                 </div>
@@ -579,7 +580,7 @@ export default function SettingsPage() {
                       <p className="text-[10px] text-slate-400 mt-0.5">Kelola perangkat yang sedang login</p>
                     </div>
                   </div>
-                  <button className="px-4 py-1.5 bg-white border border-slate-200 text-violet-600 text-[12px] font-semibold rounded-lg hover:bg-slate-50 transition-colors">
+                  <button onClick={() => setActiveModal('session')} className="px-4 py-1.5 bg-white border border-slate-200 text-violet-600 text-[12px] font-semibold rounded-lg hover:bg-slate-50 transition-colors">
                     Lihat Sesi
                   </button>
                 </div>
@@ -589,6 +590,121 @@ export default function SettingsPage() {
             )}
           </div>
         </div>
+
+      {/* Modals */}
+      {activeModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-[2px]">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden transform scale-100 transition-all">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="font-bold text-slate-800 text-[15px]">
+                {activeModal === 'password' && "Ubah Password"}
+                {activeModal === 'session' && "Kelola Sesi Aktif"}
+                {activeModal === 'role' && "Tambah Peran Baru"}
+              </h3>
+              <button onClick={() => setActiveModal(null)} className="text-slate-400 hover:text-slate-600 transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            
+            <div className="p-6 max-h-[60vh] overflow-y-auto">
+              {activeModal === 'password' && (
+                <div className="flex flex-col gap-4">
+                  <div>
+                    <label className="text-[13px] text-slate-600 font-medium">Password Lama</label>
+                    <input type="password" placeholder="Masukkan password lama" className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:border-violet-500" />
+                  </div>
+                  <div>
+                    <label className="text-[13px] text-slate-600 font-medium">Password Baru</label>
+                    <input type="password" placeholder="Masukkan password baru" className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:border-violet-500" />
+                  </div>
+                  <div>
+                    <label className="text-[13px] text-slate-600 font-medium">Konfirmasi Password Baru</label>
+                    <input type="password" placeholder="Ulangi password baru" className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:border-violet-500" />
+                  </div>
+                </div>
+              )}
+
+              {activeModal === 'session' && (
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center justify-between p-3 border border-violet-200 bg-violet-50 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-violet-200 rounded-lg flex items-center justify-center text-violet-700">
+                        <LayoutDashboard className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="text-[13px] font-bold text-slate-800">Windows 11 • Chrome</p>
+                        <p className="text-[11px] text-slate-500">Jakarta, Indonesia (Saat ini)</p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold text-violet-700 bg-violet-200 px-2 py-0.5 rounded-full">Aktif</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 border border-slate-200 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500">
+                        <Home className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="text-[13px] font-bold text-slate-800">iPhone 14 • Safari</p>
+                        <p className="text-[11px] text-slate-500">Kemarin, 14:30</p>
+                      </div>
+                    </div>
+                    <button className="text-[12px] text-red-500 font-medium hover:underline">Keluarkan</button>
+                  </div>
+                  <button className="w-full py-2.5 mt-2 text-slate-700 font-medium text-[13px] border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
+                    Keluarkan Semua Perangkat Lain
+                  </button>
+                </div>
+              )}
+
+              {activeModal === 'role' && (
+                <div className="flex flex-col gap-4">
+                  <div>
+                    <label className="text-[13px] text-slate-600 font-medium">Nama Peran</label>
+                    <input type="text" placeholder="Contoh: Supervisor" className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg text-[13px] text-slate-700 focus:outline-none focus:border-violet-500" />
+                  </div>
+                  <div>
+                    <label className="text-[13px] text-slate-600 font-medium mb-2 block">Hak Akses</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <label className="flex items-center gap-2 p-2 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
+                        <input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500" />
+                        <span className="text-[12px] font-medium text-slate-700">Kasir / POS</span>
+                      </label>
+                      <label className="flex items-center gap-2 p-2 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
+                        <input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500" />
+                        <span className="text-[12px] font-medium text-slate-700">Manajemen Produk</span>
+                      </label>
+                      <label className="flex items-center gap-2 p-2 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
+                        <input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500" />
+                        <span className="text-[12px] font-medium text-slate-700">Laporan</span>
+                      </label>
+                      <label className="flex items-center gap-2 p-2 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
+                        <input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500" />
+                        <span className="text-[12px] font-medium text-slate-700">Pengaturan</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+              <button onClick={() => setActiveModal(null)} className="px-5 py-2.5 bg-white border border-slate-200 text-slate-700 text-[13px] font-semibold rounded-xl hover:bg-slate-50 transition-colors">
+                Batal
+              </button>
+              <button 
+                onClick={() => {
+                  setActiveModal(null);
+                  setSaveSuccess(true);
+                  setTimeout(() => setSaveSuccess(false), 3000);
+                }} 
+                className="px-5 py-2.5 bg-violet-600 text-white text-[13px] font-semibold rounded-xl hover:bg-violet-700 transition-colors shadow-sm shadow-violet-200"
+              >
+                Simpan Perubahan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
         {/* Bottom Sticky Action Bar */}
         <div className="absolute bottom-0 left-0 w-full bg-white border-t border-slate-200 px-8 py-4 flex items-center justify-end gap-4 shadow-[0_-4px_10px_rgba(0,0,0,0.02)]">
