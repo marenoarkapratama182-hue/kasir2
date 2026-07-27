@@ -189,6 +189,28 @@ export default function TransactionsPage() {
     router.push("/login");
   };
 
+  const handleChangeStatus = async (newStatus: string) => {
+    if (!selectedTxData || selectedTxData.status === newStatus) return;
+    if (!confirm(`Ubah status transaksi menjadi ${newStatus}?`)) return;
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from("sales")
+        .update({ status: newStatus })
+        .eq("id", selectedTxData.dbId);
+
+      if (!error) {
+        setTransactions(prev => prev.map(t => t.id === selectedTxData.id ? { ...t, status: newStatus } : t));
+        setSelectedTxData({ ...selectedTxData, status: newStatus });
+      } else {
+        alert("Gagal mengubah status.");
+        console.error(error);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const handleRefund = async () => {
     if (!selectedTxData || selectedTxData.status === "Refund") return;
@@ -503,7 +525,29 @@ export default function TransactionsPage() {
                       <p className="text-[10px] text-slate-400 font-medium">ID Transaksi</p>
                       <p className="text-sm font-bold text-slate-800 mt-0.5">{selectedTxData.id}</p>
                     </div>
-                    <span className="bg-emerald-100 text-emerald-600 text-[10px] font-bold px-2.5 py-1 rounded-full">{selectedTxData.status}</span>
+                    <div className="relative">
+                      <select 
+                        value={selectedTxData.status} 
+                        onChange={(e) => handleChangeStatus(e.target.value)}
+                        className={`appearance-none text-[10px] font-bold px-2.5 py-1 pr-6 rounded-full focus:outline-none cursor-pointer border border-transparent hover:border-slate-300 transition-colors ${
+                          selectedTxData.status === 'Berhasil' ? 'bg-emerald-100 text-emerald-600' : 
+                          selectedTxData.status === 'Pending' ? 'bg-amber-100 text-amber-600' : 
+                          selectedTxData.status === 'Dibatalkan' ? 'bg-red-100 text-red-600' : 
+                          'bg-blue-100 text-blue-600'
+                        }`}
+                      >
+                        <option value="Berhasil" className="text-slate-800">Berhasil</option>
+                        <option value="Pending" className="text-slate-800">Pending</option>
+                        <option value="Dibatalkan" className="text-slate-800">Dibatalkan</option>
+                        <option value="Refund" className="text-slate-800">Refund</option>
+                      </select>
+                      <ChevronDown className={`w-3 h-3 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none ${
+                        selectedTxData.status === 'Berhasil' ? 'text-emerald-600' : 
+                        selectedTxData.status === 'Pending' ? 'text-amber-600' : 
+                        selectedTxData.status === 'Dibatalkan' ? 'text-red-600' : 
+                        'text-blue-600'
+                      }`} />
+                    </div>
                   </div>
                   <div>
                     <p className="text-[10px] text-slate-400 font-medium">Waktu</p>
