@@ -113,7 +113,6 @@ export default function TransactionsPage() {
   const [filterDate, setFilterDate] = useState("");
   const [filterMethod, setFilterMethod] = useState("Semua Metode");
   const [filterStatus, setFilterStatus] = useState("Semua Status");
-  const [filterKasir, setFilterKasir] = useState("Semua Kasir");
   const [currentPage, setCurrentPage] = useState(1);
   const router = useRouter();
   const itemsPerPage = 10;
@@ -230,9 +229,8 @@ export default function TransactionsPage() {
                         t.kasir.toLowerCase().includes(search.toLowerCase());
     const matchMethod = filterMethod === "Semua Metode" || t.metode === filterMethod;
     const matchStatus = filterStatus === "Semua Status" || t.status === filterStatus;
-    const matchKasir = filterKasir === "Semua Kasir" || t.kasir === filterKasir;
     const matchDate = !filterDate || (t.rawWaktu && t.rawWaktu.startsWith(filterDate));
-    return matchSearch && matchMethod && matchStatus && matchKasir && matchDate;
+    return matchSearch && matchMethod && matchStatus && matchDate;
   });
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
@@ -378,20 +376,10 @@ export default function TransactionsPage() {
                 <ChevronDown className="w-3 h-3 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
               </div>
 
-              <div className="relative">
-                <select value={filterKasir} onChange={e => setFilterKasir(e.target.value)} className="appearance-none bg-white border border-slate-200 rounded-lg pl-3 pr-8 py-2 text-xs text-slate-600 focus:outline-none focus:border-violet-500 shadow-sm">
-                  <option value="Semua Kasir">Semua Kasir</option>
-                  <option value="John Doe">John Doe</option>
-                  <option value="Sarah A.">Sarah A.</option>
-                  <option value="Budi K.">Budi K.</option>
-                </select>
-                <ChevronDown className="w-3 h-3 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-              </div>
-
-              {(filterDate || filterMethod !== "Semua Metode" || filterStatus !== "Semua Status" || filterKasir !== "Semua Kasir" || search) && (
+              {(filterDate || filterMethod !== "Semua Metode" || filterStatus !== "Semua Status" || search) && (
                 <button 
                   onClick={() => {
-                    setSearch(""); setFilterDate(""); setFilterMethod("Semua Metode"); setFilterStatus("Semua Status"); setFilterKasir("Semua Kasir");
+                    setSearch(""); setFilterDate(""); setFilterMethod("Semua Metode"); setFilterStatus("Semua Status");
                   }}
                   className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-2 rounded-lg text-xs font-semibold transition-colors"
                 >
