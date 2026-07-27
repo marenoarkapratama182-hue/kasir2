@@ -689,13 +689,22 @@ export default function TransactionsPage() {
                     Lihat Detail
                   </button>
                   <div className="grid grid-cols-2 gap-2">
-                    <button onClick={handleReprint} className="flex items-center justify-center gap-1.5 bg-white border border-slate-200 text-slate-700 font-semibold py-2.5 rounded-xl text-xs hover:bg-slate-50 transition-colors">
-                      <Printer className="w-3.5 h-3.5" /> Cetak Ulang Struk
+                    <button onClick={() => handleChangeStatus("Berhasil")} disabled={selectedTxData.status === "Berhasil"} className="flex items-center justify-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-600 font-semibold py-2 rounded-xl text-xs hover:bg-emerald-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                      <Check className="w-3.5 h-3.5" /> Berhasil
                     </button>
-                    <button onClick={handleRefund} disabled={selectedTxData.status === "Refund"} className="flex items-center justify-center gap-1.5 bg-red-50 border border-red-200 text-red-600 font-semibold py-2.5 rounded-xl text-xs hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                      <RotateCcw className="w-3.5 h-3.5" /> {selectedTxData.status === "Refund" ? "Direfund" : "Refund"}
+                    <button onClick={() => handleChangeStatus("Pending")} disabled={selectedTxData.status === "Pending"} className="flex items-center justify-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-600 font-semibold py-2 rounded-xl text-xs hover:bg-amber-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                      <Clock className="w-3.5 h-3.5" /> Pending
+                    </button>
+                    <button onClick={() => handleChangeStatus("Dibatalkan")} disabled={selectedTxData.status === "Dibatalkan"} className="flex items-center justify-center gap-1.5 bg-slate-50 border border-slate-200 text-slate-600 font-semibold py-2 rounded-xl text-xs hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                      <X className="w-3.5 h-3.5" /> Batal
+                    </button>
+                    <button onClick={handleRefund} disabled={selectedTxData.status === "Refund"} className="flex items-center justify-center gap-1.5 bg-red-50 border border-red-200 text-red-600 font-semibold py-2 rounded-xl text-xs hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                      <RotateCcw className="w-3.5 h-3.5" /> Refund
                     </button>
                   </div>
+                  <button onClick={handleReprint} className="w-full flex items-center justify-center gap-1.5 bg-white border border-slate-200 text-slate-700 font-semibold py-2.5 rounded-xl text-xs hover:bg-slate-50 transition-colors">
+                    <Printer className="w-3.5 h-3.5" /> Cetak Ulang Struk
+                  </button>
                 </div>
               )}
             </aside>
