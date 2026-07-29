@@ -153,6 +153,25 @@ export default function ProductsPage() {
     }
   };
 
+  const handleDeleteProduct = async (id: string) => {
+    if (!confirm("Apakah Anda yakin ingin menghapus produk ini?")) return;
+    
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', id);
+        
+      if (error) throw error;
+      
+      setProducts(prev => prev.filter(p => p.id !== id));
+    } catch (err) {
+      console.error("Error deleting product:", err);
+      alert("Gagal menghapus produk.");
+    }
+  };
+
   return (
     <div className="flex h-screen w-full font-sans overflow-hidden text-slate-800" style={{ background: "#fcfcfd" }}>
       {/* ─── SIDEBAR ─── */}
@@ -333,6 +352,7 @@ export default function ProductsPage() {
                               <Edit2 className="w-4 h-4" />
                             </button>
                             <button 
+                              onClick={() => handleDeleteProduct(p.id)}
                               className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                               title="Hapus"
                             >
