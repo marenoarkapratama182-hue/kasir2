@@ -259,16 +259,7 @@ export default function ProductsPage() {
         <div className="flex-1 flex flex-col p-8 overflow-hidden">
           
           {/* Action Bar */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex gap-2">
-              <button className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 shadow-sm transition-colors">
-                <Filter className="w-4 h-4" /> Semua Kategori
-              </button>
-              <button className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 shadow-sm transition-colors">
-                Urutkan: Nama (A-Z) <ChevronDown className="w-4 h-4 ml-1" />
-              </button>
-            </div>
-            
+          <div className="flex items-center justify-end mb-6">
             <button 
               onClick={() => setIsModalOpen(true)}
               className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white rounded-xl px-5 py-2.5 text-sm font-bold shadow-sm shadow-violet-200 transition-colors"
